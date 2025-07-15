@@ -10,11 +10,13 @@ const ComoFunciona = () => {
       <div className="container mx-auto px-6">
         <div className="relative rounded-[40px] overflow-hidden">
           
-          {/* Capa 0: Imagen de fondo (sin cambios) */}
+          {/* Capa 0: Imagen de fondo con efecto de respiración acentuado */}
           <motion.div
             className="absolute inset-0 z-0"
-            animate={{ scale: [1, 1.02, 1] }}
-            transition={{ duration: 8, ease: "easeInOut", repeat: Infinity }}
+            // CORRECCIÓN 1: Se aumenta la escala máxima de 1.02 a 1.05 para una "respiración" más profunda.
+            animate={{ scale: [1, 1.05, 1] }}
+            // CORRECCIÓN 2: Se reduce la duración de 8 a 6 segundos para un pulso más rápido y notable.
+            transition={{ duration: 6, ease: "easeInOut", repeat: Infinity }}
           >
             <Image
               src="/images/how-it-works-bg.png"
@@ -43,7 +45,6 @@ const ComoFunciona = () => {
                 height={55}
                 alt="Cómo"
               />
-              {/* CAMBIO CLAVE: Texto más pequeño para móvil (text-2xl) */}
               <p className="mt-4 text-2xl md:text-4xl font-bold max-w-md">
                 Con una inversión de <span className="text-good-lime">$45 millones COP</span>, obtienes ingresos pasivos gracias a la venta de energía.
               </p>
@@ -57,7 +58,6 @@ const ComoFunciona = () => {
               transition={{ duration: 0.8 }}
               className="self-center text-center lg:self-end lg:text-right"
             >
-              {/* CAMBIO CLAVE: Texto más pequeño para móvil (text-base) */}
               <p className="text-base md:text-xl max-w-sm text-white/90">
                 Una inversión con demanda asegurada, riesgo controlado y retornos sostenibles en el tiempo.
               </p>
