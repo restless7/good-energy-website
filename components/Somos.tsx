@@ -1,6 +1,6 @@
 // components/Somos.tsx
 'use client';
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import StatCard from './StatCard';
@@ -9,7 +9,8 @@ import {
   useMotionValue,
   useTransform,
   wrap,
-  useAnimationFrame
+  useAnimationFrame,
+  PanInfo
 } from 'framer-motion';
 import EllipseHighlight from './EllipseHighlight';
 
@@ -19,25 +20,158 @@ const stats = [
   { iconSrc: '/images/icon-panel.svg', value: '1.740', description: 'Paneles solares en operación' },
 ];
 
-// --- PARÁMETROS DE NUESTRO MOTOR FÍSICO REFINADO ---
-const BASE_VELOCITY = 0.05; 
-const DRAG_SENSITIVITY = 0.005; 
-const LERP_FACTOR = 0.03; 
-const MAX_VELOCITY = 2; 
+// --- PARÁMETROS FÍSICOS MEJORADOS ---
+const PHYSICS_CONFIG = {
+  BASE_VELOCITY: 0.15,           // Velocidad base más rápida
+  DRAG_MULTIPLIER: 0.034,        // Multiplicador de inercia del drag más fuerte
+  DECELERATION: 0.96,            // Factor de desaceleración (más suave)
+  MAX_VELOCITY: 2.2,             // Velocidad máxima aumentada
+  MIN_VELOCITY: 0.01,            // Velocidad mínima antes de resetear
+  SPRING_STIFFNESS: 400,         // Rigidez del spring
+  SPRING_DAMPING: 40,            // Amortiguación del spring
+  RESISTANCE: 0.88,              // Resistencia al movimiento ligeramente aumentada
+  CARD_WIDTH_DESKTOP: 208,       // w-52 = 208px
+  CARD_WIDTH_MOBILE: 280,        // Ancho móvil estimado
+  GAP: 16,                       // gap-4 = 16px
+};
 
 const Somos = () => {
   const baseX = useMotionValue(0);
-  const x = useTransform(baseX, (v) => `${wrap(-25, 0, v)}%`);
-
-  const velocity = useRef(BASE_VELOCITY);
+  const velocity = useRef(PHYSICS_CONFIG.BASE_VELOCITY);
   const isDragging = useRef(false);
+  const isHovered = useRef(false);
+  const dragStartTime = useRef(0);
+  const lastDragVelocity = useRef(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useRef(false);
 
+  // Detectar si es móvil
+  useEffect(() => {
+    const checkMobile = () => {
+      isMobile.current = window.innerWidth < 640;
+    };
+    
+    checkMobile();
+    
+    // Prevenir scroll vertical en móvil durante el drag horizontal
+    const preventScroll = (e: TouchEvent) => {
+      if (isDragging.current) {
+        e.preventDefault();
+      }
+    };
+    
+    window.addEventListener('resize', checkMobile);
+    document.addEventListener('touchmove', preventScroll, { passive: false });
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      document.removeEventListener('touchmove', preventScroll);
+    };
+  }, []);
+
+  // Calcular el ancho total del carrusel
+  const getCarouselWidth = useCallback(() => {
+    const cardWidth = isMobile.current ? PHYSICS_CONFIG.CARD_WIDTH_MOBILE : PHYSICS_CONFIG.CARD_WIDTH_DESKTOP;
+    return (cardWidth + PHYSICS_CONFIG.GAP) * stats.length;
+  }, []);
+
+  // Transform con wrap mejorado
+  const x = useTransform(baseX, (v) => {
+    const wrapWidth = getCarouselWidth();
+    return `${wrap(-wrapWidth, 0, v)}px`;
+  });
+
+  // Función de desaceleración suave
+  const applyDeceleration = useCallback(() => {
+    const velocityDifference = Math.abs(velocity.current - PHYSICS_CONFIG.BASE_VELOCITY);
+    
+    if (velocityDifference > PHYSICS_CONFIG.MIN_VELOCITY) {
+      // Interpolar suavemente hacia la velocidad base
+      const lerpFactor = 0.02;
+      velocity.current = velocity.current * (1 - lerpFactor) + PHYSICS_CONFIG.BASE_VELOCITY * lerpFactor;
+    } else {
+      // Mantener velocidad base constante
+      velocity.current = PHYSICS_CONFIG.BASE_VELOCITY;
+    }
+  }, []);
+
+  // Función para manejar el inicio del drag
+  const handleDragStart = useCallback(() => {
+    isDragging.current = true;
+    dragStartTime.current = Date.now();
+    lastDragVelocity.current = velocity.current;
+    
+    // Prevenir selección de texto en móvil
+    if (isMobile.current) {
+      document.body.style.userSelect = 'none';
+      document.body.style.webkitUserSelect = 'none';
+    }
+  }, []);
+
+  // Función para manejar el final del drag
+  const handleDragEnd = useCallback((event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    isDragging.current = false;
+    
+    // Restaurar selección de texto
+    if (isMobile.current) {
+      document.body.style.userSelect = '';
+      document.body.style.webkitUserSelect = '';
+    }
+    
+    const adjustedVelocity = info.velocity.x * PHYSICS_CONFIG.DRAG_MULTIPLIER;
+    
+    // Calcular nueva velocidad basada en la inercia
+    let newVelocity = velocity.current + adjustedVelocity;
+    
+    // Aplicar resistencia progresiva
+    if (Math.abs(newVelocity) > PHYSICS_CONFIG.BASE_VELOCITY * 2) {
+      newVelocity *= PHYSICS_CONFIG.RESISTANCE;
+    }
+    
+    // Limitar velocidad máxima
+    newVelocity = Math.max(-PHYSICS_CONFIG.MAX_VELOCITY, 
+                          Math.min(PHYSICS_CONFIG.MAX_VELOCITY, newVelocity));
+    
+    velocity.current = newVelocity;
+  }, []);
+
+  // Función para manejar hover (pausar en desktop)
+  const handleMouseEnter = useCallback(() => {
+    if (!isMobile.current) {
+      isHovered.current = true;
+    }
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    if (!isMobile.current) {
+      isHovered.current = false;
+    }
+  }, []);
+
+  // Loop de animación principal
   useAnimationFrame(() => {
     if (!isDragging.current) {
-      velocity.current = velocity.current * (1 - LERP_FACTOR) + BASE_VELOCITY * LERP_FACTOR;
+      if (isHovered.current) {
+        // Desaceleración gradual al hacer hover
+        velocity.current *= 0.98;
+        if (Math.abs(velocity.current) < 0.005) {
+          velocity.current = 0;
+        }
+      } else {
+        // Regresar suavemente a la velocidad base constante
+        applyDeceleration();
+      }
     }
+    
+    // Actualizar posición
     baseX.set(baseX.get() + velocity.current);
   });
+
+  // Configuración de drag constraints dinámicas
+  const dragConstraints = {
+    left: -getCarouselWidth() * 3,
+    right: getCarouselWidth() * 1.5
+  };
 
   return (
     <section id="somos" className="relative bg-good-green text-good-white py-20 lg:py-32 overflow-hidden">
@@ -58,30 +192,41 @@ const Somos = () => {
             </h3>
             
             <div className="relative mt-12 z-10">
-              <motion.div className="overflow-hidden cursor-grab" whileTap={{ cursor: "grabbing" }}>
+              <motion.div 
+                ref={containerRef}
+                className="overflow-hidden cursor-grab select-none touch-pan-x"
+                style={{ touchAction: 'pan-x' }}
+                whileTap={{ cursor: "grabbing" }}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              >
                 <motion.div
                   className="flex gap-4"
                   style={{ x }}
                   drag="x"
-                  dragConstraints={{ right: 0, left: -4000 }}
-                  onDragStart={() => {
-                    isDragging.current = true;
-                  }}
-                  onDragEnd={(event, info) => {
-                    isDragging.current = false;
-                    let newVelocity = velocity.current + info.velocity.x * DRAG_SENSITIVITY;
-                    
-                    if (Math.abs(newVelocity) > MAX_VELOCITY) {
-                      newVelocity = Math.sign(newVelocity) * MAX_VELOCITY;
-                    }
-                    velocity.current = newVelocity;
+                  dragConstraints={dragConstraints}
+                  dragElastic={0.2}
+                  dragMomentum={false}
+                  dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                  whileDrag={{ 
+                    scale: 0.98,
+                    transition: { duration: 0.1 }
                   }}
                 >
-                  {[...stats, ...stats, ...stats, ...stats].map((stat, index) => (
-                    <div key={index} className="flex-shrink-0 w-full sm:w-52 pointer-events-none sm:pointer-events-auto">
-                       <StatCard {...stat} />
-                    </div>
-                  ))}
+                  {/* Renderizar múltiples copias para efecto infinito */}
+                  {Array.from({ length: 8 }, (_, setIndex) => 
+                    stats.map((stat, index) => (
+                      <div 
+                        key={`${setIndex}-${index}`} 
+                        className="flex-shrink-0 w-full sm:w-52 pointer-events-auto touch-manipulation"
+                        style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+                      >
+                        <StatCard {...stat} />
+                      </div>
+                    ))
+                  )}
                 </motion.div>
               </motion.div>
             </div>
@@ -94,14 +239,18 @@ const Somos = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="flex flex-col gap-8"
           >
-            <Image src="/images/solar-farm.png" width={600} height={450} alt="Vista aérea de la granja solar Good Energy" className="rounded-3xl w-full" />
+            <Image 
+              src="/images/solar-farm.png" 
+              width={600} 
+              height={450} 
+              alt="Vista aérea de la granja solar Good Energy" 
+              className="rounded-3xl w-full"
+            />
             
             <div className="relative self-end">
               <motion.div
                 className="absolute top-1/2 right-0 -translate-y-1/2 z-0 w-[360px] h-[150px]"
                 animate={{ scale: [1, 1.03, 1] }}
-                // --- CORRECCIÓN AQUÍ ---
-                // Se ha corregido la sintaxis de la comilla simple.
                 style={{ rotate: -15, x: '5%', y: '-55%' }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               >
@@ -119,7 +268,7 @@ const Somos = () => {
               <motion.button 
                 whileHover={{ scale: 1.05, backgroundColor: '#E0FF29' }}
                 whileTap={{ scale: 0.95 }}
-                className="bg-good-lime text-good-dark-green px-8 py-3 font-bold uppercase tracking-wider rounded-full self-start"
+                className="bg-good-lime text-good-dark-green px-8 py-3 font-bold uppercase tracking-wider rounded-full self-start transition-colors duration-200"
               >
                 Conocer más
               </motion.button>
