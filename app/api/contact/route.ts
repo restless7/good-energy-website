@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     // Enviamos el correo usando Resend
     const { data, error } = await resend.emails.send({
       from: 'Good Energy Web <onboarding@resend.dev>', // ¡IMPORTANTE! Debe ser un dominio verificado en Resend
-      to: ['tucorreo@ejemplo.com'], // El correo donde recibirás los leads
+      to: ['hola@goodenergycol.com'], // El correo donde recibirás los leads
       subject: `Nuevo Lead de Good Energy: ${name}`,
       html: `
         <h1>Nuevo contacto desde la web de Good Energy</h1>
