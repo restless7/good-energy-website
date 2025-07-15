@@ -37,6 +37,8 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     // Manejamos cualquier otro error
+    console.error('Error en la API de contacto:', error); // <--- AÑADE ESTA LÍNEA
+
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
   }
 }
