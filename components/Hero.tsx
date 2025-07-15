@@ -30,35 +30,44 @@ const Hero = () => {
         <Image src="/images/cruz.png" alt="Elemento decorativo" width={350} height={350} className="w-[200px] h-auto md:w-[350px]" />
       </motion.div>
       
-      {/* ---- CAPA 2: EL TÍTULO (CON POSICIONAMIENTO PRECISO) ---- */}
-      {/* [MODIFICACIÓN 1] Cambiamos 'items-center' por 'items-start' para alinear arriba y quitamos el padding */}
+      {/* ---- CAPA 2: EL TÍTULO ---- */}
       <div className="relative z-20 flex h-full items-start justify-center md:justify-end">
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          // [MODIFICACIÓN 2] Añadimos márgenes para un posicionamiento exacto
-          className="text-4xl text-good-dark-green md:text-6xl font-semibold leading-tight tracking-wide text-right mt-40 md:mt-48 mr-0 md:mr-[13%]"
+          className="text-4xl text-good-dark-green md:text-6xl font-semibold leading-tight tracking-wide text-center md:text-right mt-40 md:mt-48 md:mr-[13%]"
         >
           <span className="font-normal">Energía solar,</span> <br /> 
           energía para <br />
           <span className="font-bold relative inline-block">
-            la vida
+            {/* CORRECCIÓN 2: La elipse ahora está detrás del texto */}
             <motion.div
               initial={{ scale: 0.9, opacity: 0, rotate: 0 }}
               animate={{ scale: 1, opacity: 1, rotate: -6 }}
               transition={{ duration: 1, delay: 0.5, ease: 'easeOut' }}
-              className="absolute -inset-x-6 -inset-y-4"
+              className="absolute -inset-x-6 -inset-y-4" // La elipse no necesita z-index si el texto lo tiene
             >
               <EllipseHighlight className="w-full h-full text-good-white" />
             </motion.div>
+            {/* Se envuelve el texto en un span para levantarlo con z-index */}
+            <span className="relative z-10">la vida</span>
           </span>
         </motion.h1>
       </div>
 
       {/* ---- CAPA 3: IMAGEN DEL TRABAJADOR (CHICO 1) ---- */}
       <div className="absolute bottom-0 left-0 w-full h-4/5 md:h-5/6 z-30 pointer-events-none">
-        <Image src="/images/CHICO 1.png" alt="Trabajador de Good Energy con paneles solares" fill className="object-cover object-bottom"/>
+        <Image 
+          src="/images/CHICO 1.png" 
+          alt="Trabajador de Good Energy con paneles solares" 
+          fill 
+          // CORRECCIÓN 1: Usamos un valor arbitrario para un control preciso.
+          // Móvil: ancla la imagen al 85% del eje X y al 100% del eje Y.
+          // Desktop: vuelve a centrar horizontalmente (50%) y alinear al fondo (100%).
+          // ¡Puedes ajustar el 85% a 90% o 80% si lo necesitas!
+          className="object-cover object-[85%_100%] md:object-bottom"
+        />
       </div>
 
     </section>

@@ -6,7 +6,6 @@ import { motion } from 'framer-motion';
 
 const Financiamiento = () => {
   return (
-    // CAMBIO: Se ajusta el gradiente para que sea de 'good-white' a 'good-lime'
     <section id="financiamiento" className="bg-gradient-to-b from-good-white to-good-lime py-20 lg:py-24">
       <div className="container mx-auto px-6">
         
@@ -37,10 +36,12 @@ const Financiamiento = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <h2 className="text-4xl lg:text-5xl font-bold text-good-dark-green uppercase">
+              {/* CAMBIO CLAVE: Se reduce el tamaño base (móvil) y se mantiene el de desktop (lg) */}
+              <h2 className="text-3xl lg:text-5xl font-bold text-good-dark-green uppercase">
                 Fácil <br /> Financiamiento
               </h2>
-              <p className="mt-4 text-2xl text-good-dark-green/80">
+              {/* CAMBIO CLAVE: Se reduce el tamaño del subtítulo también para mantener la coherencia */}
+              <p className="mt-4 text-xl lg:text-2xl text-good-dark-green/80">
                 Adquiere tu participación <br /> hasta en 12 meses sin interés*
               </p>
               <p className="mt-2 text-sm text-good-dark-green/60">

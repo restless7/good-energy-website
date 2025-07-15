@@ -1,28 +1,45 @@
 // components/Somos.tsx
 
 'use client';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import StatCard from './StatCard'; // Ahora se usa
-import { motion } from 'framer-motion';
-import { ArrowLeftCircle, ArrowRightCircle } from 'lucide-react'; // Ahora se usan
+import StatCard from './StatCard';
+// FIX 1: Importamos el tipo que necesitamos de Framer Motion
+import { motion, useAnimationControls, TargetAndTransition } from 'framer-motion';
 import EllipseHighlight from './EllipseHighlight';
 
-// Ahora se usa
 const stats = [
   { iconSrc: '/images/icon-co2.svg', value: "+ 1M'", description: 'Toneladas de CO2 evitadas' },
   { iconSrc: '/images/icon-trees.svg', value: "50 M'", description: 'Árboles salvados' },
   { iconSrc: '/images/icon-panel.svg', value: '1.740', description: 'Paneles solares en operación' },
 ];
 
+// FIX 2: Anotamos explícitamente la constante con el tipo importado
+const scrollAnimation: TargetAndTransition = {
+  x: ['0%', '-50%'],
+  transition: {
+    ease: 'linear',
+    duration: 45,
+    repeat: Infinity,
+  },
+};
+
 const Somos = () => {
+  const [isDragging, setIsDragging] = useState(false);
+  const controls = useAnimationControls();
+
+  useEffect(() => {
+    if (!isDragging) {
+      controls.start(scrollAnimation);
+    }
+  }, [isDragging, controls]);
+
   return (
-    <section id="somos" className="relative bg-good-green text-good-white py-20 lg:py-32">
+    <section id="somos" className="relative bg-good-green text-good-white py-20 lg:py-32 overflow-hidden">
       <div className="container mx-auto px-6 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           
-          {/* ---- COLUMNA IZQUIERDA (CÓDIGO RESTAURADO) ---- */}
           <motion.div 
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -45,28 +62,31 @@ const Somos = () => {
               <span className="text-good-lime">más grande de Santander</span>
             </h3>
             
-            <div className="mt-12">
-              <div className="relative w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_10%,white_90%,transparent)]">
+            <div className="relative mt-12 z-10">
+              <motion.div className="overflow-hidden cursor-grab" whileTap={{ cursor: "grabbing" }}>
                 <motion.div
                   className="flex gap-4"
-                  animate={{ x: ['0%', '-50%'] }}
-                  transition={{ ease: 'linear', duration: 45, repeat: Infinity }}
+                  drag="x"
+                  dragConstraints={{ right: 0, left: -2000 }}
+                  animate={controls}
+                  onDragStart={() => {
+                    setIsDragging(true);
+                    controls.stop();
+                  }}
+                  onDragEnd={() => {
+                    setIsDragging(false);
+                  }}
                 >
-                  {[...stats, ...stats].map((stat, index) => (
-                    <div key={index} className="flex-shrink-0 w-full sm:w-52">
+                  {[...stats, ...stats, ...stats, ...stats].map((stat, index) => (
+                    <div key={index} className="flex-shrink-0 w-full sm:w-52 pointer-events-none sm:pointer-events-auto">
                        <StatCard {...stat} />
                     </div>
                   ))}
                 </motion.div>
-              </div>
-            </div>
-
-            <div className="mt-8 flex items-center gap-4 opacity-50">
-              <ArrowLeftCircle className="w-10 h-10 text-white"/>
-              <ArrowRightCircle className="w-10 h-10 text-white"/>
+              </motion.div>
             </div>
           </motion.div>
- {/* ---- COLUMNA DERECHA (CON POSICIONAMIENTO CORREGIDO) ---- */}
+
           <motion.div 
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -77,26 +97,18 @@ const Somos = () => {
             <Image src="/images/solar-farm.png" width={600} height={450} alt="Vista aérea de la granja solar Good Energy" className="rounded-3xl w-full" />
             
             <div className="relative self-end">
-              
               <motion.div
                 className="absolute top-1/2 right-0 -translate-y-1/2 z-0 w-[360px] h-[150px]"
                 animate={{ scale: [1, 1.03, 1] }}
-                // [MODIFICACIÓN CLAVE] Añadimos 'y' para el ajuste vertical
-                style={{ 
-                  rotate: -15,
-                  x: '5%',     // Un pequeño empujón a la derecha
-                  y: '-55%'    // Un pequeño empujón hacia ARRIBA
-                }}
+                style={{ rotate: -15, x: '5%', y: '-55%' }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               >
                 <EllipseHighlight className="w-full h-full text-good-lime" />
               </motion.div>
-              
               <h4 className="relative text-3xl font-bold z-10 text-right pr-8">
                 Haga parte de <br /> Good Energy
               </h4>
             </div>
-
 
             <p className="text-white/80">
               <span className="font-bold">Únicamente 100 socios que crean</span>, como nosotros, en dejar una huella positiva en la tierra y en la historia energética de Colombia.

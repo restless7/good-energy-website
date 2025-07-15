@@ -16,22 +16,15 @@ const footerLinks = [
 
 const Footer = () => {
   return (
-    <footer id="footer" className="relative bg-good-green text-good-white pt-20 pb-10 overflow-hidden">
+    // Se ha eliminado el 'relative' y 'overflow-hidden' que ya no son necesarios
+    <footer id="footer" className="bg-good-green text-good-white pt-20 pb-10">
       
-      {/* Elemento decorativo en la esquina inferior derecha */}
-      <Image 
-        src="/images/decor-crosses.svg" 
-        width={450}   // Aumentado para mayor tamaño y visibilidad
-        height={150}  // Aumentado para mayor tamaño y visibilidad
-        alt="" 
-        className="absolute bottom-0 right-5 z-0" // Posición conservada
-      />
+      {/* Elemento decorativo de las cruces ha sido eliminado. */}
 
-      <div className="container mx-auto px-6 relative z-10">
+      <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-12">
 
           {/* ---- COLUMNA 1: LOGO ---- */}
-          {/* Ocupa 2 columnas en pantallas grandes para más peso visual */}
           <div className="lg:col-span-2">
             <Link href="/">
               <Image 
