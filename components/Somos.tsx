@@ -23,7 +23,7 @@ const stats = [
 // --- PARÁMETROS FÍSICOS MEJORADOS ---
 const PHYSICS_CONFIG = {
   BASE_VELOCITY: 0.15,           // Velocidad base más rápida
-  DRAG_MULTIPLIER: 0.294,        // Multiplicador de inercia del drag más fuerte
+  DRAG_MULTIPLIER: 0.494,        // Multiplicador de inercia del drag más fuerte
   DECELERATION: 0.96,            // Factor de desaceleración (más suave)
   MAX_VELOCITY: 2.2,             // Velocidad máxima aumentada
   MIN_VELOCITY: 0.01,            // Velocidad mínima antes de resetear
