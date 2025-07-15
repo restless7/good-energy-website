@@ -1,6 +1,6 @@
 // components/Somos.tsx
 'use client';
-import React, { useCallback } from 'react';
+import React, { useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import StatCard from './StatCard';
@@ -8,8 +8,8 @@ import {
   motion,
   useMotionValue,
   useTransform,
-  animate,
-  wrap
+  wrap,
+  useAnimationFrame
 } from 'framer-motion';
 import EllipseHighlight from './EllipseHighlight';
 
@@ -19,44 +19,26 @@ const stats = [
   { iconSrc: '/images/icon-panel.svg', value: '1.740', description: 'Paneles solares en operación' },
 ];
 
-const DURATION_BASE = 25; // Duración en segundos para un ciclo completo
+// --- PARÁMETROS DE NUESTRO MOTOR FÍSICO REFINADO ---
+const BASE_VELOCITY = 0.05; 
+const DRAG_SENSITIVITY = 0.005; 
+const LERP_FACTOR = 0.03; 
+const MAX_VELOCITY = 2; 
 
 const Somos = () => {
   const baseX = useMotionValue(0);
   const x = useTransform(baseX, (v) => `${wrap(-25, 0, v)}%`);
 
-  const animationRef = React.useRef<ReturnType<typeof animate> | null>(null);
-  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const velocity = useRef(BASE_VELOCITY);
+  const isDragging = useRef(false);
 
-  const startBaseAnimation = useCallback(() => {
-    animationRef.current = animate(baseX, [baseX.get(), -25], {
-      ease: 'linear',
-      duration: DURATION_BASE * (1 - (baseX.get() / -25)),
-      onComplete: () => {
-        baseX.set(0); // Resetea para el siguiente bucle
-        animationRef.current = animate(baseX, [0, -25], {
-          ease: 'linear',
-          duration: DURATION_BASE,
-          repeat: Infinity,
-          repeatType: 'loop',
-        });
-      },
-    });
-  }, [baseX]);
+  useAnimationFrame(() => {
+    if (!isDragging.current) {
+      velocity.current = velocity.current * (1 - LERP_FACTOR) + BASE_VELOCITY * LERP_FACTOR;
+    }
+    baseX.set(baseX.get() + velocity.current);
+  });
 
-  React.useEffect(() => {
-    startBaseAnimation();
-    return () => {
-      if (animationRef.current) animationRef.current.stop();
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, [startBaseAnimation]);
-
-  const stopAllAnimations = () => {
-    if (animationRef.current) animationRef.current.stop();
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-  };
-  
   return (
     <section id="somos" className="relative bg-good-green text-good-white py-20 lg:py-32 overflow-hidden">
       <div className="container mx-auto px-6 relative z-10">
@@ -69,7 +51,6 @@ const Somos = () => {
             transition={{ duration: 0.8 }}
             className="relative"
           >
-            {/* ... Elementos de la columna izquierda ... */}
             <Image src="/images/somos-title.png" width={350} height={70} alt="Somos" className="mb-4"/>
             <h3 className="relative text-4xl lg:text-5xl font-bold leading-tight z-10">
               La planta de energía solar <br />
@@ -83,21 +64,19 @@ const Somos = () => {
                   style={{ x }}
                   drag="x"
                   dragConstraints={{ right: 0, left: -4000 }}
-                  onDragStart={stopAllAnimations}
-                  onDragEnd={() => {
-                    animationRef.current = animate(baseX, baseX.get() + baseX.getVelocity(), {
-                      type: 'inertia',
-                      bounceStiffness: 300,
-                      bounceDamping: 40,
-                      timeConstant: 250,
-                      // Cuando la inercia se detiene, iniciamos el temporizador
-                      onComplete: () => {
-                        timeoutRef.current = setTimeout(startBaseAnimation, 3000); // 3 seg de inactividad
-                      }
-                    });
+                  onDragStart={() => {
+                    isDragging.current = true;
+                  }}
+                  onDragEnd={(event, info) => {
+                    isDragging.current = false;
+                    let newVelocity = velocity.current + info.velocity.x * DRAG_SENSITIVITY;
+                    
+                    if (Math.abs(newVelocity) > MAX_VELOCITY) {
+                      newVelocity = Math.sign(newVelocity) * MAX_VELOCITY;
+                    }
+                    velocity.current = newVelocity;
                   }}
                 >
-                  {/* Renderizamos 4 copias para un bucle infinito robusto */}
                   {[...stats, ...stats, ...stats, ...stats].map((stat, index) => (
                     <div key={index} className="flex-shrink-0 w-full sm:w-52 pointer-events-none sm:pointer-events-auto">
                        <StatCard {...stat} />
@@ -108,7 +87,6 @@ const Somos = () => {
             </div>
           </motion.div>
 
-          {/* ... Columna derecha (sin cambios) ... */}
           <motion.div 
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -117,10 +95,13 @@ const Somos = () => {
             className="flex flex-col gap-8"
           >
             <Image src="/images/solar-farm.png" width={600} height={450} alt="Vista aérea de la granja solar Good Energy" className="rounded-3xl w-full" />
+            
             <div className="relative self-end">
               <motion.div
                 className="absolute top-1/2 right-0 -translate-y-1/2 z-0 w-[360px] h-[150px]"
                 animate={{ scale: [1, 1.03, 1] }}
+                // --- CORRECCIÓN AQUÍ ---
+                // Se ha corregido la sintaxis de la comilla simple.
                 style={{ rotate: -15, x: '5%', y: '-55%' }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               >
@@ -130,6 +111,7 @@ const Somos = () => {
                 Haga parte de <br /> Good Energy
               </h4>
             </div>
+
             <p className="text-white/80">
               <span className="font-bold">Únicamente 100 socios que crean</span>, como nosotros, en dejar una huella positiva en la tierra y en la historia energética de Colombia.
             </p>
