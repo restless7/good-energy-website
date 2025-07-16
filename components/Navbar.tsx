@@ -29,41 +29,40 @@ const Navbar = () => {
   }, []);
 
   return (
-    <header // Cambiado a <header> por semántica
-      // [CORRECCIÓN] Usamos data-attributes para controlar el estado. Es una técnica más limpia.
-      data-scrolled={hasScrolled}
-      className="fixed top-0 left-0 w-full z-50 transition-all duration-300
-                 bg-transparent data-[scrolled=true]:bg-good-white 
-                 data-[scrolled=true]:shadow-md"
-    >
+    // El header ahora es solo un contenedor de posicionamiento
+    <header className="fixed top-0 left-0 w-full z-50">
+      
+      {/* CORRECCIÓN: Este es el DIV que actúa como fondo. */}
+      {/* Está separado del contenido y se posiciona detrás (-z-10). */}
+      <div
+        className={`absolute inset-0 -z-10 bg-good-white/50 backdrop-blur-sm shadow-md transition-opacity duration-300 
+                   ${hasScrolled ? 'opacity-100' : 'opacity-0'}`}
+      />
+
+      {/* Este es el contenido, que permanece 100% nítido */}
       <div className="container mx-auto flex h-20 items-center justify-between px-6">
         
-        {/* ---- LOGO CON EFECTO HOVER ---- */}
         <Link href="/" className="relative group">
-          {/* Logo Oscuro */}
           <Image
-            src="/images/logo-dark.png" // Actualizado a .png
+            src="/images/logo-dark.png"
             alt="Good Energy Logo"
-            width={160} height={40} priority
+            width={112} height={35/8} priority
             className={`transition-opacity duration-300 ${hasScrolled ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
           />
-          {/* Logo Claro */}
           <Image
-            src="/images/logo-light.png" // Actualizado a .png
+            src="/images/logo-light.png"
             alt="Good Energy Logo"
-            width={160} height={40} priority
+            width={140} height={35} priority
             className={`absolute top-0 left-0 transition-opacity duration-300 ${hasScrolled ? 'opacity-0' : 'opacity-100 group-hover:opacity-0'}`}
           />
         </Link>
 
-        {/* ---- LINKS DE NAVEGACIÓN ---- */}
         <ul className="hidden items-center space-x-8 md:flex">
           {navLinks.map((link) => (
             <li key={link.href}>
               <Link 
                 href={link.href} 
-                // [CORRECCIÓN] Lógica de color simplificada
-                className={`font-medium tracking-wider hover:text-good-lime transition-colors
+                className={`font-medium tracking-wider hover:text-good-lime transition-colors duration-300
                            ${hasScrolled ? 'text-good-dark-green' : 'text-good-white'}`}
               >
                 {link.label}
@@ -72,18 +71,17 @@ const Navbar = () => {
           ))}
         </ul>
 
-        {/* ---- BOTÓN DE HAMBURGUESA ---- */}
         <div className="md:hidden">
           <button onClick={() => setIsOpen(!isOpen)}>
             <Menu 
-              className={`h-8 w-8 transition-colors 
+              className={`h-8 w-8 transition-colors duration-300
                          ${hasScrolled ? 'text-good-dark-green' : 'text-good-white'}`}
             />
           </button>
         </div>
       </div>
 
-      {/* ---- MENÚ OVERLAY PARA MÓVIL (sin cambios) ---- */}
+      {/* Menú Overlay para móvil (sin cambios) */}
       <div
         className={`fixed top-0 left-0 h-screen w-full bg-good-green transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
