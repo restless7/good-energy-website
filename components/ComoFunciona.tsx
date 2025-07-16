@@ -10,28 +10,25 @@ const ComoFunciona = () => {
       <div className="container mx-auto px-6">
         <div className="relative rounded-[40px] overflow-hidden">
           
-          {/* Capa 0: Imagen de fondo con efecto de respiración acentuado */}
           <motion.div
             className="absolute inset-0 z-0"
-            // CORRECCIÓN 1: Se aumenta la escala máxima de 1.02 a 1.05 para una "respiración" más profunda.
             animate={{ scale: [1, 1.05, 1] }}
-            // CORRECCIÓN 2: Se reduce la duración de 8 a 6 segundos para un pulso más rápido y notable.
             transition={{ duration: 6, ease: "easeInOut", repeat: Infinity }}
           >
+            {/* CORRECCIÓN: Se actualiza la ruta de la imagen y se ajusta el encuadre */}
             <Image
-              src="/images/how-it-works-bg.png"
+              src="/images/how-it-works-bg-vertical.png" // Asumo que este es el nombre de tu nueva imagen
               alt="Persona sentada sobre paneles solares"
               fill
-              className="object-cover"
+              // Se añade 'object-top' para priorizar la parte superior (cielo) de la imagen
+              className="object-cover object-top" 
               quality={85}
             />
             <div className="absolute inset-0 bg-good-green/30"></div>
           </motion.div>
           
-          {/* Capa 1: Contenido de texto con layout responsivo */}
           <div className="relative z-10 flex flex-col p-8 md:p-12 text-good-white lg:min-h-[80vh] lg:justify-between">
             
-            {/* ---- Bloque Superior ---- */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -45,12 +42,11 @@ const ComoFunciona = () => {
                 height={55}
                 alt="Cómo"
               />
-              <p className="mt-4 text-2xl md:text-4xl font-bold max-w-md">
+              <p className="mt-4 text-sm lg:text-4xl font-bold max-w-md">
                 Con una inversión de <span className="text-good-lime">$45 millones COP</span>, obtienes ingresos pasivos gracias a la venta de energía.
               </p>
             </motion.div>
 
-            {/* ---- Bloque Inferior ---- */}
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -58,7 +54,7 @@ const ComoFunciona = () => {
               transition={{ duration: 0.8 }}
               className="self-center text-center lg:self-end lg:text-right"
             >
-              <p className="text-base md:text-xl max-w-sm text-white/90">
+              <p className="text-xs lg:text-xl max-w-sm text-white/90">
                 Una inversión con demanda asegurada, riesgo controlado y retornos sostenibles en el tiempo.
               </p>
             </motion.div>

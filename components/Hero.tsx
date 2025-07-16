@@ -14,7 +14,11 @@ const Hero = () => {
     offset: ["start start", "end start"]
   });
   
+  // Mapea el scroll a la posición Y (de 0px a -150px hacia arriba)
   const yPosCross = useTransform(scrollYProgress, [0, 1], [0, -150]); 
+  
+  // NUEVA LÍNEA: Mapea el mismo scroll a la escala (de 1 a 1.5, es decir, 50% más grande)
+  const scaleCross = useTransform(scrollYProgress, [0, 1], [1, 7]);
 
   return (
     <section ref={targetRef} className="relative h-screen min-h-[700px] overflow-hidden rounded-[40px] md:rounded-[50px]">
@@ -26,7 +30,11 @@ const Hero = () => {
       </div>
 
       {/* ---- CAPA 1: LA CRUZ DECORATIVA ---- */}
-      <motion.div className="absolute inset-0 flex items-center justify-center z-10" style={{ y: yPosCross }}>
+      {/* MODIFICACIÓN: Se añade la nueva transformación 'scale' al style */}
+      <motion.div 
+        className="absolute inset-0 flex items-center justify-center z-10" 
+        style={{ y: yPosCross, scale: scaleCross }}
+      >
         <Image src="/images/cruz.png" alt="Elemento decorativo" width={350} height={350} className="w-[200px] h-auto md:w-[350px]" />
       </motion.div>
       
@@ -41,16 +49,14 @@ const Hero = () => {
           <span className="font-normal">Energía solar,</span> <br /> 
           energía para <br />
           <span className="font-bold relative inline-block">
-            {/* CORRECCIÓN 2: La elipse ahora está detrás del texto */}
             <motion.div
               initial={{ scale: 0.9, opacity: 0, rotate: 0 }}
               animate={{ scale: 1, opacity: 1, rotate: -6 }}
               transition={{ duration: 1, delay: 0.5, ease: 'easeOut' }}
-              className="absolute -inset-x-6 -inset-y-4" // La elipse no necesita z-index si el texto lo tiene
+              className="absolute -inset-x-6 -inset-y-4"
             >
               <EllipseHighlight className="w-full h-full text-good-white" />
             </motion.div>
-            {/* Se envuelve el texto en un span para levantarlo con z-index */}
             <span className="relative z-10">la vida</span>
           </span>
         </motion.h1>
@@ -61,11 +67,7 @@ const Hero = () => {
         <Image 
           src="/images/CHICO 1.png" 
           alt="Trabajador de Good Energy con paneles solares" 
-          fill 
-          // CORRECCIÓN 1: Usamos un valor arbitrario para un control preciso.
-          // Móvil: ancla la imagen al 85% del eje X y al 100% del eje Y.
-          // Desktop: vuelve a centrar horizontalmente (50%) y alinear al fondo (100%).
-          // ¡Puedes ajustar el 85% a 90% o 80% si lo necesitas!
+          fill
           className="object-cover object-[85%_100%] md:object-bottom"
         />
       </div>
