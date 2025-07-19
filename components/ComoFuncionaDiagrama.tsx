@@ -11,9 +11,13 @@ const ComoFuncionaDiagrama = () => {
   return (
     <section 
       id="como-funciona"
-      style={{ background: 'linear-gradient(to bottom, #D8DA00, #FEFDF0)' }}
+      // --- INICIO DE LA MODIFICACIÓN DEL DEGRADADO ---
+      // Se ajusta la proporción para que el color lima domine el fondo
+style={{ background: 'linear-gradient(to bottom, #D8DA00, #FEFDF0 99%)' }}
+      // --- FIN DE LA MODIFICACIÓN DEL DEGRADADO ---
     >
       <div className="container mx-auto px-6 relative z-10 py-16">
+        {/* El resto del componente permanece igual... */}
         <h2 className="text-4xl font-bold text-center mb-12 text-good-dark-green">¿Cómo funciona?</h2>
         
         <div className="
@@ -55,10 +59,8 @@ const ComoFuncionaDiagrama = () => {
         
         <div className="relative flex flex-col items-center gap-8 text-good-dark-green mt-12">
           
-          {/* CAMBIO: Se añade la animación "breathe" al motion.div de las cruces */}
           <motion.div 
             className="absolute top-[50%] left-[5%] md:left-[15%] lg:left-[20%] w-[300px] h-[300px] lg:w-[400px] lg:h-[400px] z-0"
-            // Atributos de animación añadidos
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 0.2 }}
             animate={{ scale: [1, 1.05, 1] }}
