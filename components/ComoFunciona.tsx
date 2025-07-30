@@ -6,15 +6,9 @@ import { motion } from 'framer-motion';
 
 const ComoFunciona = () => {
   return (
-    // La sección mantiene el padding vertical (py-10) y el color de fondo
-    <section id="como-funciona" className="bg-good-lime py-10">
+    // 👇 AQUÍ ESTÁ EL CAMBIO: Se reemplaza 'py-10' por 'pt-10' para eliminar el padding inferior
+    <section id="como-funciona" className="bg-good-lime pt-10">
       
-      {/* --- INICIO DE LA MODIFICACIÓN DE ANCHO --- */}
-      {/* Se ha eliminado el 'div' que contenía las clases 'container mx-auto px-0 md:px-6'. */}
-      {/* Ahora, el siguiente 'div' es hijo directo de 'section' y ocupará el ancho completo. */}
-      {/* --- FIN DE LA MODIFICACIÓN DE ANCHO --- */}
-      
-      {/* Este contenedor ahora se estira al 100% del ancho en todas las pantallas */}
       <div className="relative rounded-[40px] overflow-hidden">
         
         <motion.div
@@ -45,11 +39,6 @@ const ComoFunciona = () => {
               priority
             />
           </div>
-
-          {/* --- INICIO DE LA MODIFICACIÓN DE TINTE --- */}
-          {/* Se ha eliminado la siguiente línea para quitar el tinte verde: */}
-          {/* <div className="absolute inset-0 bg-good-green/30"></div> */}
-          {/* --- FIN DE LA MODIFICACIÓN DE TINTE --- */}
 
         </motion.div>
         

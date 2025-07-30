@@ -1,9 +1,9 @@
 // components/PorQueInvertir.tsx
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import CircularText from './CircularText';
 
@@ -24,13 +24,24 @@ const accordionData = [
 
 const PorQueInvertir = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const targetRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: targetRef,
+    offset: ["start end", "end start"],
+  });
+  const rotate = useTransform(scrollYProgress, [0, 1], [0, 360]);
 
   return (
-    <section id="invertir" className="relative text-good-dark-green py-10">
+    // 👇 AQUÍ ESTÁ EL CAMBIO: Se añade el color de fondo a la sección
+    <section 
+      ref={targetRef} 
+      id="invertir" 
+      className="relative text-good-dark-green py-10" 
+      style={{ backgroundColor: '#f9f5fa' }}
+    >
       <div 
         className="container mx-auto px-6 relative rounded-[40px] overflow-hidden"
-        // CORRECCIÓN 1: Movemos el gradiente al 25% para crear la franja final
-        style={{ background: 'linear-gradient(to bottom, #FEFDF0 25%, #D8DA00 25%)' }}
+        style={{ background: 'linear-gradient(to bottom, #f9f5fa 25%, #D8DA00 25%)' }}
       >
         <motion.div
           className="absolute top-16 right-[-50px] md:right-10 lg:right-20 z-10 hidden lg:block"
@@ -41,10 +52,9 @@ const PorQueInvertir = () => {
         </motion.div>
         
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] h-[280px] z-20"
-             // Lo alineamos con la nueva línea del 25% del gradiente
              style={{ top: '25%' }}
         >
-          <CircularText />
+          <CircularText rotate={rotate} />
           <Image 
             src="/images/sun-plus-icon.svg"
             width={200} 
@@ -54,16 +64,13 @@ const PorQueInvertir = () => {
           />
         </div>
 
-        {/* Contenido principal */}
         <div className="relative z-10 flex flex-col items-center py-24 lg:py-32">
-          
           <div className="h-80 w-full" /> 
           
           <div className="w-full max-w-4xl flex flex-col items-center lg:items-start text-center lg:text-left">
             <h2 className="text-3xl md:text-4xl font-bold mb-8">
               ¿Por qué <br /> invertir ahora?
             </h2>
-            
             <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-4">
               {accordionData.map((item, index) => {
                 const isOpen = openIndex === index;
@@ -80,11 +87,9 @@ const PorQueInvertir = () => {
                         onClick={() => setOpenIndex(isOpen ? null : index)}
                         className="w-full flex justify-between items-center p-4 text-left"
                       >
-                        {/* CORRECCIÓN 2: Texto más pequeño en móvil (text-base), y vuelve a ser grande en desktop (lg:text-lg) */}
                         <span className="font-bold text-base lg:text-lg">{item.title}</span>
                         {isOpen ? <ChevronUp className="text-good-dark-green" /> : <ChevronDown className="text-good-lime" />}
                       </button>
-
                       <AnimatePresence>
                         {isOpen && (
                           <motion.div
@@ -104,7 +109,6 @@ const PorQueInvertir = () => {
               })}
             </div>
           </div>
-
           <Link href="#contacto" className="mt-12 z-20">
             <motion.button 
               className="bg-good-dark-green text-good-lime px-8 py-3 font-bold uppercase tracking-wider rounded-full"

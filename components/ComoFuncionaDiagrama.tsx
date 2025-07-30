@@ -9,15 +9,22 @@ import { ArrowDown, ArrowRight } from 'lucide-react';
 
 const ComoFuncionaDiagrama = () => {
   return (
+    // CAMBIO 1: Se quita el estilo en línea del degradado y se añade 'relative'
     <section 
       id="como-funciona"
-      // --- INICIO DE LA MODIFICACIÓN DEL DEGRADADO ---
-      // Se ajusta la proporción para que el color lima domine el fondo
-style={{ background: 'linear-gradient(to bottom, #D8DA00, #FEFDF0 99%)' }}
-      // --- FIN DE LA MODIFICACIÓN DEL DEGRADADO ---
+      className="relative" 
     >
+      {/* CAMBIO 2: Se añade la imagen de fondo con el componente Image de Next.js */}
+      <Image
+        src="/images/bg-lime-gradient.png" // Asegúrate de que esta ruta sea correcta
+        fill
+        alt="Fondo con degradado lima"
+        className="object-cover -z-10" // -z-10 la envía detrás del contenido
+        quality={100}
+      />
+
+      {/* El resto del contenido ya tiene z-10, por lo que se mostrará encima */}
       <div className="container mx-auto px-6 relative z-10 py-16">
-        {/* El resto del componente permanece igual... */}
         <h2 className="text-4xl font-bold text-center mb-12 text-good-dark-green">¿Cómo funciona?</h2>
         
         <div className="

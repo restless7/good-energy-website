@@ -14,14 +14,15 @@ const Hero = () => {
     offset: ["start start", "end start"]
   });
   
-  // Mapea el scroll a la posición Y (de 0px a -150px hacia arriba)
   const yPosCross = useTransform(scrollYProgress, [0, 1], [0, -150]); 
-  
-  // NUEVA LÍNEA: Mapea el mismo scroll a la escala (de 1 a 1.5, es decir, 50% más grande)
   const scaleCross = useTransform(scrollYProgress, [0, 1], [1, 7]);
 
   return (
-    <section ref={targetRef} className="relative h-screen min-h-[700px] overflow-hidden rounded-[40px] md:rounded-[50px]">
+    // 👇 AQUÍ ESTÁ EL CAMBIO: Se usan las clases rounded-b-* para redondear solo abajo
+    <section 
+      ref={targetRef} 
+      className="relative h-screen min-h-[700px] overflow-hidden rounded-b-[40px] md:rounded-b-[50px]"
+    >
 
       {/* ---- CAPA 0: FONDO DE CIELO ---- */}
       <div className="absolute inset-0 z-0">
@@ -30,7 +31,6 @@ const Hero = () => {
       </div>
 
       {/* ---- CAPA 1: LA CRUZ DECORATIVA ---- */}
-      {/* MODIFICACIÓN: Se añade la nueva transformación 'scale' al style */}
       <motion.div 
         className="absolute inset-0 flex items-center justify-center z-10" 
         style={{ y: yPosCross, scale: scaleCross }}
