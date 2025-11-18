@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model ConferenceReservation {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  phone     String?
+  country   String
+  mode      String   // "virtual" or "presencial"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("conference_reservations")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  phone       String?
+  country     String?
+  avatar      String?
+  isActive    Boolean  @default(true)
+  investments Investment[]
+  earnings    Earning[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("users")
+}
+
+model SolarPlant {
+  id            String   @id @default(cuid())
+  name          String
+  location      String
+  coordinates   String?  // "lat,lng"
+  capacity      Float    // kW capacity
+  energyGenerated Float @default(0) // Total kWh generated
+  status        String   @default("En construcción") // En construcción, En operación, Mantenimiento
+  startDate     DateTime?
+  completionDate DateTime?
+  investments   Investment[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("solar_plants")
+}
+
+model Investment {
+  id          String   @id @default(cuid())
+  userId      String
+  plantId     String?
+  type        String   // "Base", "Crecimiento", "Premium"
+  amount      Float    // Investment amount in COP
+  currency    String   @default("COP")
+  roi         Float    // Expected annual ROI percentage
+  actualRoi   Float?   // Actual ROI achieved
+  status      String   @default("Activa") // Activa, Completada, Cancelada
+  startDate   DateTime @default(now())
+  maturityDate DateTime?
+  earnings    Earning[]
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plant       SolarPlant? @relation(fields: [plantId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("investments")
+}
+
+model Earning {
+  id            String   @id @default(cuid())
+  userId        String
+  investmentId  String
+  amount        Float    // Earning amount in COP
+  currency      String   @default("COP")
+  type          String   // "Ganancia", "Reinversión", "Interés"
+  status        String   @default("Pendiente") // Pendiente, Pagado, Procesando
+  paymentDate   DateTime?
+  paymentMethod String?  // "Transferencia", "PayU", "Stripe"
+  taxWithheld   Float    @default(0)
+  netAmount     Float    // Amount after taxes
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  investment    Investment @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("earnings")
+}
