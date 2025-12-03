@@ -97,3 +97,44 @@ model Earning {
 
   @@map("earnings")
 }
+
+model Post {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  excerpt     String?
+  content     String   // Markdown or Rich Text
+  coverImage  String?
+  publishedAt DateTime?
+  authorId    String
+  author      Author   @relation(fields: [authorId], references: [id])
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("posts")
+}
+
+model Author {
+  id        String   @id @default(cuid())
+  name      String
+  avatar    String?
+  bio       String?
+  posts     Post[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("authors")
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  posts     Post[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("categories")
+}

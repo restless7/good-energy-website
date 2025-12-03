@@ -18,7 +18,7 @@ const Footer = () => {
   return (
     // Se ha eliminado el 'relative' y 'overflow-hidden' que ya no son necesarios
     <footer id="footer" className="bg-good-green text-good-white pt-20 pb-10">
-      
+
       {/* Elemento decorativo de las cruces ha sido eliminado. */}
 
       <div className="container mx-auto px-6">
@@ -27,10 +27,10 @@ const Footer = () => {
           {/* ---- COLUMNA 1: LOGO ---- */}
           <div className="lg:col-span-2">
             <Link href="/">
-              <Image 
-                src="/images/logo-light.png" 
+              <Image
+                src="/images/logo-light.png"
                 alt="Good Energy Logo"
-                width={320} 
+                width={320}
                 height={80}
               />
             </Link>
@@ -49,13 +49,32 @@ const Footer = () => {
             </ul>
           </div>
 
+          {/* ---- COLUMNA 3: COMUNIDAD ---- */}
+          <div>
+            <h4 className="font-bold uppercase tracking-wider mb-4 text-good-lime">Comunidad</h4>
+            <ul className="space-y-3">
+              <li>
+                <Link href="/inversiones" className="hover:text-good-lime transition-colors">Dashboard</Link>
+              </li>
+              <li>
+                <Link href="/blog" className="hover:text-good-lime transition-colors">Blog & Noticias</Link>
+              </li>
+              <li>
+                <Link href="/join-conference" className="hover:text-good-lime transition-colors">Eventos</Link>
+              </li>
+              <li>
+                <Link href="/investment-simulator" className="hover:text-good-lime transition-colors">Recursos</Link>
+              </li>
+            </ul>
+          </div>
+
           {/* ---- COLUMNA 3: CONTACTO Y REDES SOCIALES ---- */}
           <div>
             <div className="mb-6">
               <p className="font-bold uppercase tracking-wider">Teléfono</p>
               <a href="tel:+573159780531" className="text-good-lime hover:underline">315 978 0531</a>
             </div>
-            
+
             <div className="mb-6">
               <p className="font-bold uppercase tracking-wider">Correo:</p>
               <a href="mailto:hola@goodenergycol.com" className="text-good-lime hover:underline">hola@goodenergycol.com</a>

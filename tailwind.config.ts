@@ -42,6 +42,9 @@ const config: Config = {
       // --- FIN DE LA MODIFICACIÓN ---
     },
   },
-  plugins: [tailwindClipPath],
+  plugins: [
+    tailwindClipPath,
+    require('@tailwindcss/typography'),
+  ],
 }
 export default config;
