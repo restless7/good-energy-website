@@ -1,12 +1,12 @@
 'use server'
 
-import { PrismaClient } from '../generated/prisma'
+import { PrismaClient, Prisma } from '../generated/prisma'
 
 const prisma = new PrismaClient()
 
 export async function getPosts(categorySlug?: string) {
     try {
-        const where: any = {
+        const where: Prisma.PostWhereInput = {
             publishedAt: {
                 lte: new Date(),
             },
