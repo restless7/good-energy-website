@@ -485,14 +485,19 @@ const ObjectionCard = ({ item }: { item: ObjectionItem }) => {
     const [isFlipped, setIsFlipped] = useState(false);
 
     return (
-        <div className="h-64 w-full perspective-1000" onClick={() => setIsFlipped(!isFlipped)}>
+        <div className="h-64 w-full" style={{ perspective: '1000px' }} onClick={() => setIsFlipped(!isFlipped)}>
             <motion.div
-                className="relative w-full h-full transition-all duration-500 preserve-3d cursor-pointer"
+                className="relative w-full h-full cursor-pointer"
+                initial={false}
                 animate={{ rotateY: isFlipped ? 180 : 0 }}
                 transition={{ type: "spring", stiffness: 60, damping: 15 }}
+                style={{ transformStyle: 'preserve-3d' }}
             >
                 {/* Front */}
-                <div className="absolute w-full h-full backface-hidden rounded-2xl shadow-lg border-2 border-dashed border-red-200 bg-white p-6 flex flex-col items-center justify-center text-center hover:border-red-400 transition-colors group">
+                <div
+                    className="absolute w-full h-full rounded-2xl shadow-lg border-2 border-dashed border-red-200 bg-white p-6 flex flex-col items-center justify-center text-center hover:border-red-400 transition-colors group"
+                    style={{ backfaceVisibility: 'hidden' }}
+                >
                     <AlertCircle className="w-10 h-10 text-red-500 mb-4 group-hover:scale-110 transition-transform" />
                     <p className="font-bold text-good-green text-lg" dangerouslySetInnerHTML={{ __html: item.trigger }}></p>
                     <p className="text-xs text-gray-400 mt-4 font-mono uppercase tracking-widest">Toca para defender</p>
@@ -500,8 +505,12 @@ const ObjectionCard = ({ item }: { item: ObjectionItem }) => {
 
                 {/* Back */}
                 <div
-                    className="absolute w-full h-full backface-hidden rounded-2xl shadow-xl bg-good-green p-6 flex flex-col items-center justify-center text-center rotate-y-180 border-2 border-good-lime"
-                    style={{ transform: "rotateY(180deg)" }}
+                    className="absolute w-full h-full rounded-2xl shadow-xl bg-good-green p-6 flex flex-col items-center justify-center text-center border-2 border-good-lime"
+                    style={{
+                        marginTop: 0,
+                        transform: "rotateY(180deg)",
+                        backfaceVisibility: "hidden"
+                    }}
                 >
                     <div className="absolute top-2 right-2 text-good-lime">
                         <CopyButton text={item.response.replace(/&quot;/g, '"')} className="text-good-lime hover:bg-white/10" />
