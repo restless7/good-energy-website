@@ -93,8 +93,17 @@ const Footer = () => {
         </div>
 
         {/* Línea divisoria y copyright opcional (buena práctica) */}
-        <div className="mt-16 border-t border-white/20 pt-6 text-center text-white/60 text-sm">
+        <div className="mt-16 border-t border-white/20 pt-6 flex flex-col items-center gap-4 text-center text-white/60 text-sm">
           <p>© {new Date().getFullYear()} Good Energy. Todos los derechos reservados.</p>
+          <a
+            href="https://www.apexaisolutions.dev/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-xs text-white/50 hover:text-white transition-colors duration-300 font-sans"
+          >
+            <img src="/images/apex-logo.png" alt="Apex AI Solutions" className="w-4 h-4 object-contain brightness-0 invert opacity-70" />
+            Powered by Apex AI Solutions
+          </a>
         </div>
       </div>
     </footer>
