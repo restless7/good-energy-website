@@ -1,15 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
-import { NextRequest, NextResponse } from 'next/server'
-
-// ===========================
-// PLACEHOLDER DEPLOYMENT DETECTION
-// ===========================
-
-const isPlaceholderDeployment =
-  process.env.CLERK_SECRET_KEY === 'sk_test_placeholder' ||
-  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY === 'pk_test_placeholder' ||
-  process.env.CLERK_SECRET_KEY?.includes('placeholder') ||
-  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.includes('placeholder')
+import { NextResponse } from 'next/server'
 
 // ===========================
 // PUBLIC ROUTES (bypass Clerk auth)
@@ -26,41 +16,35 @@ const isPublicRoute = createRouteMatcher([
   '/api/conference(.*)',
   '/api/simulator(.*)',
   '/api/dashboard(.*)',
+  '/api/webhooks(.*)',
   '/sign-in(.*)',
   '/sign-up(.*)',
 ])
 
 // ===========================
 // MAIN MIDDLEWARE
+// clerkMiddleware MUST be the direct default export — never wrap it.
 // ===========================
 
-export default function middleware(request: NextRequest, event: any) {
-  // If using placeholder keys, skip Clerk entirely — allow all routes
-  if (isPlaceholderDeployment) {
+export default clerkMiddleware(async (auth, request) => {
+  // Public routes: no auth required
+  if (isPublicRoute(request)) {
     return NextResponse.next()
   }
 
-  return clerkMiddleware(async (auth, request) => {
-    // Skip Clerk protection for public routes
-    if (isPublicRoute(request)) {
-      return NextResponse.next()
-    }
+  const { userId } = await auth()
+  const pathname = request.nextUrl.pathname
 
-    const { userId } = await auth();
-    const pathname = request.nextUrl.pathname;
+  // Unauthenticated user trying to access /admin → redirect to sign-in
+  if (pathname.startsWith('/admin') && !userId) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/sign-in'
+    url.searchParams.set('redirect_url', pathname)
+    return NextResponse.redirect(url)
+  }
 
-    // ── Admin Route Family ──────────────────────────────
-    if (pathname.startsWith('/admin') && !userId) {
-      // Unauthenticated → redirect to Clerk sign-in
-      const url = request.nextUrl.clone();
-      url.pathname = '/sign-in';
-      url.searchParams.set('redirect_url', pathname);
-      return NextResponse.redirect(url);
-    }
-
-    return NextResponse.next()
-  })(request, event)
-}
+  return NextResponse.next()
+})
 
 export const config = {
   matcher: [
