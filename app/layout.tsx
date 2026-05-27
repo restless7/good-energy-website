@@ -1,23 +1,25 @@
 // app/layout.tsx
 
 import type { Metadata } from 'next';
-// 1. Importa la función 'localFont' de next/font
 import localFont from 'next/font/local'; 
 import './globals.css';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer'; // <--- 1. IMPORTA EL FOOTER
+import AuthWrapper from '@/components/wrapper/AuthWrapper';
+import { Toaster } from 'sonner';
 
-
-// 2. Configura tu fuente local
+// Configure local font
 const unbounded = localFont({
-  src: './fonts/Unbounded-VariableFont_wght.ttf', // Asegúrate de que el nombre del archivo coincida
+  src: './fonts/Unbounded-VariableFont_wght.ttf',
   display: 'swap',
-  variable: '--font-unbounded', // Le asignamos un nombre de variable CSS
+  variable: '--font-unbounded',
 });
 
 export const metadata: Metadata = {
-  title: 'Good Energy - Invierte en Energía Solar',
+  title: {
+    default: 'Good Energy - Invierte en Energía Solar',
+    template: '%s | Good Energy',
+  },
   description: 'Genera rendimientos mensuales invirtiendo en nuestra granja de energía solar.',
+  keywords: ['energía solar', 'inversión', 'rendimientos', 'sostenibilidad', 'Good Energy'],
 };
 
 export default function RootLayout({
@@ -27,12 +29,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      {/* 3. Aplica la variable de la fuente al body */}
-      <body className={`${unbounded.variable} font-sans antialiased bg-good-white text-good-green`}>
-        <Navbar />
-        {children}
-        <Footer /> {/* <--- 2. AÑADE EL FOOTER AQUÍ */}
-
+      <body className={`${unbounded.variable} font-sans antialiased`}>
+        <AuthWrapper>
+          {children}
+        </AuthWrapper>
+        <Toaster
+          position="bottom-right"
+          theme="dark"
+          toastOptions={{
+            style: {
+              background: '#0A3A43',
+              border: '1px solid rgba(26,107,120,0.5)',
+              color: '#FFFDF0',
+            },
+          }}
+          richColors
+        />
       </body>
     </html>
   );

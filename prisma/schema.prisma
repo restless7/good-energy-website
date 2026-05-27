@@ -25,17 +25,19 @@ model ConferenceReservation {
 }
 
 model User {
-  id          String   @id @default(cuid())
-  name        String
-  email       String   @unique
-  phone       String?
-  country     String?
-  avatar      String?
-  isActive    Boolean  @default(true)
-  investments Investment[]
-  earnings    Earning[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String          @id @default(cuid())
+  clerkUserId    String?         @unique
+  name           String
+  email          String          @unique
+  phone          String?
+  country        String?
+  avatar         String?
+  isActive       Boolean         @default(true)
+  investments    Investment[]
+  earnings       Earning[]
+  partnerProfile PartnerProfile?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@map("users")
 }
@@ -137,4 +139,76 @@ model Category {
   updatedAt DateTime @updatedAt
 
   @@map("categories")
+}
+
+// ===========================
+// PARTNER OPERATIONS MODULE
+// ===========================
+
+model PartnerProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName String
+  bio         String?
+  isActive    Boolean  @default(true)
+  goals       PartnerGoal[]
+  milestones  Milestone[]
+  tasks       PartnerTask[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("partner_profiles")
+}
+
+model PartnerGoal {
+  id               String   @id @default(cuid())
+  partnerProfileId String
+  partnerProfile   PartnerProfile @relation(fields: [partnerProfileId], references: [id], onDelete: Cascade)
+  title            String
+  description      String?
+  targetMetric     String
+  currentProgress  Float    @default(0)
+  targetValue      Float
+  status           String   @default("NOT_STARTED") // NOT_STARTED | IN_PROGRESS | ACHIEVED | AT_RISK
+  startDate        DateTime @default(now())
+  deadline         DateTime?
+  milestones       Milestone[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("partner_goals")
+}
+
+model Milestone {
+  id               String   @id @default(cuid())
+  partnerProfileId String
+  partnerProfile   PartnerProfile @relation(fields: [partnerProfileId], references: [id], onDelete: Cascade)
+  goalId           String?
+  goal             PartnerGoal? @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  title            String
+  description      String?
+  dueDate          DateTime?
+  isCompleted      Boolean  @default(false)
+  completedAt      DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("milestones")
+}
+
+model PartnerTask {
+  id               String   @id @default(cuid())
+  partnerProfileId String
+  partnerProfile   PartnerProfile @relation(fields: [partnerProfileId], references: [id], onDelete: Cascade)
+  title            String
+  description      String?
+  status           String   @default("BACKLOG") // BACKLOG | TODO | IN_PROGRESS | REVIEW | DONE
+  priority         String   @default("MEDIUM")  // LOW | MEDIUM | HIGH | CRITICAL
+  dueDate          DateTime?
+  assignedBy       String   // clerkUserId of the SUPER_ADMIN who created the task
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("partner_tasks")
 }
