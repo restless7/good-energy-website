@@ -28,7 +28,7 @@ export interface UpdateUserRoleResult {
 // HELPERS
 // ===========================
 
-async function assertSuperAdmin(): Promise<string> {
+async function assertOwner(): Promise<string> {
   const { userId, sessionClaims } = await auth()
 
   if (!userId) {
@@ -37,12 +37,16 @@ async function assertSuperAdmin(): Promise<string> {
 
   const role = (sessionClaims?.metadata as Record<string, unknown> | undefined)?.role as string | undefined
 
-  if (role !== 'SUPER_ADMIN') {
-    throw new Error('Forbidden: SUPER_ADMIN access required.')
+  // Owners: SUPER_ADMIN and PARTNER have full admin access
+  if (role !== 'SUPER_ADMIN' && role !== 'PARTNER') {
+    throw new Error('Forbidden: Owner access required (SUPER_ADMIN or PARTNER).')
   }
 
   return userId
 }
+
+// Legacy alias for backward compatibility
+const assertSuperAdmin = assertOwner
 
 function extractRole(publicMetadata: Record<string, unknown> | null | undefined): UserRole {
   const raw = publicMetadata?.role as string | undefined
@@ -63,7 +67,7 @@ function extractRole(publicMetadata: Record<string, unknown> | null | undefined)
  * Caller must be SUPER_ADMIN.
  */
 export async function getUsersAction(limit = 50, offset = 0): Promise<ClerkUserRow[]> {
-  await assertSuperAdmin()
+  await assertOwner()
 
   const client = await clerkClient()
   const response = await client.users.getUserList({ limit, offset, orderBy: '-created_at' })
@@ -102,7 +106,7 @@ export async function updateUserRoleAction(
   newRole: UserRole
 ): Promise<UpdateUserRoleResult> {
   try {
-    const actorId = await assertSuperAdmin()
+    const actorId = await assertOwner()
 
     if (!targetClerkUserId || typeof targetClerkUserId !== 'string') {
       return { success: false, error: 'Invalid target user ID.' }

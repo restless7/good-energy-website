@@ -66,7 +66,7 @@ const navigation = [
     name: 'Operaciones',
     icon: Building2,
     group: 'ops',
-    roles: ['SUPER_ADMIN'],
+    roles: ['SUPER_ADMIN', 'PARTNER'],
     subItems: [
       { name: 'Plantas Solares', href: '/admin/plantas' },
       { name: 'Producción Energía', href: '/admin/produccion' },
@@ -88,7 +88,7 @@ const navigation = [
     name: 'Operaciones Partners', 
     href: '/admin/partners', 
     icon: Briefcase, 
-    roles: ['SUPER_ADMIN'] 
+    roles: ['SUPER_ADMIN', 'PARTNER'] 
   },
   { 
     name: 'Mi Gestión', 
@@ -100,13 +100,13 @@ const navigation = [
     name: 'Gestión de Usuarios', 
     href: '/admin/usuarios', 
     icon: UserCog, 
-    roles: ['SUPER_ADMIN'] 
+    roles: ['SUPER_ADMIN', 'PARTNER'] 
   },
   { 
     name: 'Configuración', 
     href: '/admin/configuracion', 
     icon: Settings, 
-    roles: ['SUPER_ADMIN'] 
+    roles: ['SUPER_ADMIN', 'PARTNER'] 
   },
 ];
 

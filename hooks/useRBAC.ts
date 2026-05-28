@@ -7,9 +7,9 @@ import { useAuth, UserRole } from '@/contexts/AuthContext';
  * 
  * Role Hierarchy:
  * ┌──────────────┐
- * │ SUPER_ADMIN  │ ← Full access (Sebastian / platform owner)
+ * │ SUPER_ADMIN  │ ← Full access (platform owner)
  * ├──────────────┤
- * │ PARTNER      │ ← Brand partners (investor management, reports, blog)
+ * │ PARTNER      │ ← Full access (business owners - same privileges as SUPER_ADMIN)
  * ├──────────────┤
  * │ INVESTOR     │ ← Investor dashboard only (no admin panel)
  * ├──────────────┤

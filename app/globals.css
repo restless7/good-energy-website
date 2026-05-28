@@ -3,4 +3,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Force light mode always — prevent dark mode detection from device/WhatsApp */
+html {
+  color-scheme: light;
+}
+
+/* Prevent dark mode from affecting the app */
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: light;
+  }
+}
+
 

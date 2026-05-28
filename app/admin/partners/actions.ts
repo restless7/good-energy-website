@@ -95,13 +95,19 @@ export interface PartnerProfileWithData {
 // AUTH GUARDS
 // ===========================
 
-async function assertSuperAdmin(): Promise<string> {
+async function assertOwner(): Promise<string> {
   const { userId, sessionClaims } = await auth()
   if (!userId) throw new Error('Unauthenticated')
   const role = (sessionClaims?.metadata as Record<string, unknown> | undefined)?.role
-  if (role !== 'SUPER_ADMIN') throw new Error('Forbidden: SUPER_ADMIN required.')
+  // Owners: SUPER_ADMIN and PARTNER have full admin access
+  if (role !== 'SUPER_ADMIN' && role !== 'PARTNER') {
+    throw new Error('Forbidden: Owner access required (SUPER_ADMIN or PARTNER).')
+  }
   return userId
 }
+
+// Legacy alias for backward compatibility
+const assertSuperAdmin = assertOwner
 
 async function assertPartnerOrAdmin(): Promise<{ userId: string; role: string }> {
   const { userId, sessionClaims } = await auth()

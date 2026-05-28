@@ -48,8 +48,8 @@ export function useAuth() {
 
 /**
  * Good Energy role hierarchy:
- * - SUPER_ADMIN: Full access (Sebastian / platform owner)
- * - PARTNER: Brand partners with limited admin access (investors management, reports)
+ * - SUPER_ADMIN: Full access (platform owner)
+ * - PARTNER: Full access (business owners - same privileges as SUPER_ADMIN)
  * - INVESTOR: Investor dashboard access only
  * - USER: Public user, no admin access
  */
@@ -72,21 +72,9 @@ function normalizeRole(rawRole: string | undefined): UserRole {
 function getPermissions(role: UserRole): string[] {
   switch (role) {
     case 'SUPER_ADMIN':
-      return ['*'];
     case 'PARTNER':
-      return [
-        'admin:access',
-        'investors:read',
-        'investors:write',
-        'investments:read',
-        'investments:write',
-        'earnings:read',
-        'earnings:write',
-        'plants:read',
-        'blog:read',
-        'blog:write',
-        'analytics:read',
-      ];
+      // Owners have full wildcard access
+      return ['*'];
     case 'INVESTOR':
       return [
         'dashboard:access',
