@@ -1,7 +1,8 @@
+import {ClerkProvider} from '@clerk/nextjs';
 // app/layout.tsx
 
 import type { Metadata } from 'next';
-import localFont from 'next/font/local'; 
+import localFont from 'next/font/local';
 import './globals.css';
 import AuthWrapper from '@/components/wrapper/AuthWrapper';
 import { Toaster } from 'sonner';
@@ -30,21 +31,23 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${unbounded.variable} font-sans antialiased`}>
-        <AuthWrapper>
+        <ClerkProvider>
+          <AuthWrapper>
           {children}
-        </AuthWrapper>
-        <Toaster
+          </AuthWrapper>
+          <Toaster
           position="bottom-right"
           theme="dark"
           toastOptions={{
-            style: {
-              background: '#0A3A43',
-              border: '1px solid rgba(26,107,120,0.5)',
-              color: '#FFFDF0',
-            },
+          style: {
+          background: '#0A3A43',
+          border: '1px solid rgba(26,107,120,0.5)',
+          color: '#FFFDF0',
+          },
           }}
           richColors
-        />
+          />
+        </ClerkProvider>
       </body>
     </html>
   );
