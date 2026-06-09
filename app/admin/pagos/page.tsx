@@ -4,12 +4,13 @@ import { useState } from 'react';
 import { Wallet, CreditCard, ArrowUpRight, Activity, Server, FileCheck, Search, Banknote } from 'lucide-react';
 
 const mockBatches = [
-  { id: '1', period: 'May 2026', totalGross: 145000.00, energyCost: 25000.00, netMargin: 120000.00, platformFee: 36000.00, partnerUtility: 84000.00, status: 'SETTLED', date: '2026-06-01' },
-  { id: '2', period: 'June 2026', totalGross: 160000.00, energyCost: 30000.00, netMargin: 130000.00, platformFee: 39000.00, partnerUtility: 91000.00, status: 'PROCESSING', date: '2026-06-30' },
-  { id: '3', period: 'July 2026 (MTD)', totalGross: 45000.00, energyCost: 8000.00, netMargin: 37000.00, platformFee: 11100.00, partnerUtility: 25900.00, status: 'PENDING', date: 'N/A' }
+  { id: '1', period: 'May 2026', totalGross: 145000.00, energyCost: 25000.00, gatewayFee: 7250.00, adminFee: 14500.00, netMargin: 120000.00, platformFee: 36000.00, partnerUtility: 84000.00, assetOwnerPayout: 98250.00, status: 'SETTLED', date: '2026-06-01' },
+  { id: '2', period: 'June 2026', totalGross: 160000.00, energyCost: 30000.00, gatewayFee: 8000.00, adminFee: 16000.00, netMargin: 130000.00, platformFee: 39000.00, partnerUtility: 91000.00, assetOwnerPayout: 106000.00, status: 'PROCESSING', date: '2026-06-30' },
+  { id: '3', period: 'July 2026 (MTD)', totalGross: 45000.00, energyCost: 8000.00, gatewayFee: 2250.00, adminFee: 4500.00, netMargin: 37000.00, platformFee: 11100.00, partnerUtility: 25900.00, assetOwnerPayout: 30250.00, status: 'PENDING', date: 'N/A' }
 ];
 
 export default function PagosPage() {
+  const [investorType, setInvestorType] = useState<'SPACE_PARTNER' | 'ASSET_OWNER'>('SPACE_PARTNER');
   const fmt = (v: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v);
 
   return (
@@ -17,12 +18,22 @@ export default function PagosPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-[#FFFDF0]">Automated Fee Splits Ledger</h1>
-          <p className="text-[#8CB4BC] text-sm mt-1">30/70 Platform & Asset Partner distribution engine</p>
+          <p className="text-[#8CB4BC] text-sm mt-1">Reconciliation engine for Space Partners & Asset Owners</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 bg-[#D8DA00] hover:bg-[#D8DA00]/90 text-[#0D4651] font-semibold rounded-xl transition-colors text-sm">
-          <Server className="w-4 h-4" />
-          Run Batch Split Ledger
-        </button>
+        <div className="flex gap-3">
+          <select 
+            value={investorType} 
+            onChange={(e) => setInvestorType(e.target.value as any)}
+            className="px-4 py-2.5 bg-[#0E4D58] border border-[#1A6B78]/50 rounded-xl text-[#FFFDF0] focus:outline-none focus:border-[#D8DA00]/50 text-sm font-bold"
+          >
+            <option value="SPACE_PARTNER">Clasificación: Space Partner (30/70)</option>
+            <option value="ASSET_OWNER">Clasificación: Asset Owner (Full Yield)</option>
+          </select>
+          <button className="flex items-center gap-2 px-4 py-2.5 bg-[#D8DA00] hover:bg-[#D8DA00]/90 text-[#0D4651] font-semibold rounded-xl transition-colors text-sm">
+            <Server className="w-4 h-4" />
+            Run Batch Split Ledger
+          </button>
+        </div>
       </div>
 
       {/* Analytics */}
@@ -35,14 +46,29 @@ export default function PagosPage() {
           <p className="text-xs text-[#8CB4BC] uppercase tracking-wider">Energy Inputs</p>
           <p className="text-xl font-bold text-red-400 mt-1">{fmt(63000)}</p>
         </div>
-        <div className="bg-[#0A3A43] p-4 rounded-xl border border-[#D8DA00]/30 border-l-4 border-l-[#D8DA00]">
-          <p className="text-xs text-[#D8DA00] uppercase tracking-wider font-bold">Good Energy Fee (30%)</p>
-          <p className="text-xl font-bold text-[#FFFDF0] mt-1">{fmt(86100)}</p>
-        </div>
-        <div className="bg-[#0A3A43] p-4 rounded-xl border border-blue-400/30 border-l-4 border-l-blue-400">
-          <p className="text-xs text-blue-400 uppercase tracking-wider font-bold">Partner Utility (70%)</p>
-          <p className="text-xl font-bold text-[#FFFDF0] mt-1">{fmt(200900)}</p>
-        </div>
+        {investorType === 'SPACE_PARTNER' ? (
+          <>
+            <div className="bg-[#0A3A43] p-4 rounded-xl border border-[#D8DA00]/30 border-l-4 border-l-[#D8DA00]">
+              <p className="text-xs text-[#D8DA00] uppercase tracking-wider font-bold">Good Energy Fee (30%)</p>
+              <p className="text-xl font-bold text-[#FFFDF0] mt-1">{fmt(86100)}</p>
+            </div>
+            <div className="bg-[#0A3A43] p-4 rounded-xl border border-blue-400/30 border-l-4 border-l-blue-400">
+              <p className="text-xs text-blue-400 uppercase tracking-wider font-bold">Space Partner Payout</p>
+              <p className="text-xl font-bold text-[#FFFDF0] mt-1">{fmt(200900)}</p>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="bg-[#0A3A43] p-4 rounded-xl border border-purple-400/30 border-l-4 border-l-purple-400">
+              <p className="text-xs text-purple-400 uppercase tracking-wider font-bold">Platform Fees (15%)</p>
+              <p className="text-xl font-bold text-[#FFFDF0] mt-1">{fmt(52500)}</p>
+            </div>
+            <div className="bg-[#0A3A43] p-4 rounded-xl border border-[#D8DA00]/30 border-l-4 border-l-[#D8DA00]">
+              <p className="text-xs text-[#D8DA00] uppercase tracking-wider font-bold">Asset Owner Payout</p>
+              <p className="text-xl font-bold text-[#FFFDF0] mt-1">{fmt(234500)}</p>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Transfer Verification Board */}
@@ -58,8 +84,17 @@ export default function PagosPage() {
                 <th className="px-6 py-4">Billing Period</th>
                 <th className="px-6 py-4 text-right">Node Gross</th>
                 <th className="px-6 py-4 text-right">Energy Cost</th>
-                <th className="px-6 py-4 text-right">Platform Fee (30%)</th>
-                <th className="px-6 py-4 text-right">Partner Payout (70%)</th>
+                {investorType === 'SPACE_PARTNER' ? (
+                  <>
+                    <th className="px-6 py-4 text-right">Platform Fee (30%)</th>
+                    <th className="px-6 py-4 text-right">Partner Payout (70%)</th>
+                  </>
+                ) : (
+                  <>
+                    <th className="px-6 py-4 text-right">Platform Admin (10%) + Gateway (5%)</th>
+                    <th className="px-6 py-4 text-right">Asset Owner Payout</th>
+                  </>
+                )}
                 <th className="px-6 py-4 text-center">Batch Status</th>
               </tr>
             </thead>
@@ -72,8 +107,17 @@ export default function PagosPage() {
                   </td>
                   <td className="px-6 py-4 text-right text-[#FFFDF0]">{fmt(batch.totalGross)}</td>
                   <td className="px-6 py-4 text-right text-red-400">{fmt(batch.energyCost)}</td>
-                  <td className="px-6 py-4 text-right text-[#D8DA00] font-bold bg-[#D8DA00]/5">{fmt(batch.platformFee)}</td>
-                  <td className="px-6 py-4 text-right text-blue-400 font-bold bg-blue-400/5">{fmt(batch.partnerUtility)}</td>
+                  {investorType === 'SPACE_PARTNER' ? (
+                    <>
+                      <td className="px-6 py-4 text-right text-[#8CB4BC] font-bold">{fmt(batch.platformFee)}</td>
+                      <td className="px-6 py-4 text-right text-blue-400 font-bold bg-blue-400/5">{fmt(batch.partnerUtility)}</td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="px-6 py-4 text-right text-purple-400 font-bold">{fmt(batch.gatewayFee + batch.adminFee)}</td>
+                      <td className="px-6 py-4 text-right text-[#D8DA00] font-bold bg-[#D8DA00]/5">{fmt(batch.assetOwnerPayout)}</td>
+                    </>
+                  )}
                   <td className="px-6 py-4 text-center">
                     {batch.status === 'SETTLED' ? (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-500/10 text-green-400 text-xs font-bold rounded border border-green-500/20">

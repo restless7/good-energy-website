@@ -41,17 +41,50 @@ const mockNodes = [
   }
 ];
 
+// Mock algorithm data that would come from lib/analytics/assetPortability.ts matching SimulatedScenario
+const recommendedLeads = {
+  '2': { leadName: 'Parque Comercial El Tesoro (Lead L1)', matchScore: 92, targetTier: 'Tier 01' }
+};
+
 export default function DispatchDashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#1A6B78]/50 pb-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#FFFDF0]">Network Dispatch Dashboard</h1>
-          <p className="text-[#8CB4BC] text-sm mt-1">Continuous uptime and fleet customer experience routing</p>
+          <h1 className="text-2xl font-bold text-[#FFFDF0]">Network Dispatch & Operations Dashboard</h1>
+          <p className="text-[#8CB4BC] text-sm mt-1">Autonomous fleet routing, grid arbitrage, and asset portability</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 text-green-400 rounded-lg text-sm font-bold border border-green-500/20">
             <Activity className="w-4 h-4 animate-pulse" /> NETWORK OK
+          </div>
+        </div>
+      </div>
+
+      {/* Module 1: XM Grid Integration & Dynamic Arbitrage Engine */}
+      <div className="bg-[#052126] p-5 rounded-xl border border-[#1A6B78]/50 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
+            <Zap className="w-5 h-5 text-blue-400" />
+          </div>
+          <div>
+            <h3 className="text-[#FFFDF0] font-bold">Live XM Grid Spot Price (Precio de Bolsa)</h3>
+            <p className="text-[#8CB4BC] text-xs">Sistema Interconectado Nacional (SIN)</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-6">
+          <div className="text-right">
+            <p className="text-[10px] text-[#8CB4BC] uppercase tracking-widest">Local Solar LCOE</p>
+            <p className="font-mono text-[#FFFDF0] font-bold">250 COP / kWh</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] text-[#8CB4BC] uppercase tracking-widest">Current Grid Spot</p>
+            <p className="font-mono text-red-400 font-bold animate-pulse">850 COP / kWh</p>
+          </div>
+          <div className="bg-red-500/20 text-red-400 px-4 py-2 rounded border border-red-500/30 text-xs font-bold flex flex-col">
+            <span>ARBITRAGE EVENT ACTIVE</span>
+            <span className="text-[10px] opacity-80 mt-0.5">Switching sourcing to local solar & grid injection</span>
           </div>
         </div>
       </div>
@@ -130,6 +163,30 @@ export default function DispatchDashboardPage() {
                 ))}
               </div>
             </div>
+
+            {/* Algorithmic "Asset Portability" Recommendation Engine Alert */}
+            {node.utilization < node.breakeven && (
+              <div className="bg-red-500/10 p-4 border-t-2 border-red-500/30 flex items-start gap-3 text-[#FFFDF0]">
+                <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-red-400 font-bold uppercase tracking-wider text-xs">Autonomous Redeployment Warning</h4>
+                  <p className="text-sm mt-1">
+                    Node <span className="font-bold">{node.name}</span> is performing under the {node.breakeven}% break-even mark (Current: {node.utilization}%).
+                  </p>
+                  {recommendedLeads[node.id as keyof typeof recommendedLeads] && (
+                    <div className="mt-2 bg-[#052126] p-3 rounded border border-red-500/20 inline-block">
+                      <p className="text-xs text-[#8CB4BC] uppercase tracking-wider mb-1">Recommended Physical Redeployment Match</p>
+                      <p className="text-sm text-[#D8DA00] font-bold">
+                        Target: {recommendedLeads[node.id as keyof typeof recommendedLeads].leadName} | Score: {recommendedLeads[node.id as keyof typeof recommendedLeads].matchScore}%
+                      </p>
+                    </div>
+                  )}
+                  <button className="mt-3 text-xs bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold px-3 py-1.5 rounded transition-colors">
+                    Execute Redeployment Protocol
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>

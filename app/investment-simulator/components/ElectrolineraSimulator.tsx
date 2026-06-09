@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { SimulatorCharts } from './SimulatorCharts';
+import { SimulationLeadForm } from './SimulationLeadForm';
 
 const TIERS = {
   TIER_01: { name: 'Tier 01 (60kW Fast)', capex: 120000000, baseDemand: 90 },
@@ -16,6 +17,7 @@ export function ElectrolineraSimulator() {
   const [wholesaleCost, setWholesaleCost] = useState(1000);
   const [inflationRate, setInflationRate] = useState(6);
   const [demandGrowth, setDemandGrowth] = useState(10);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(value);
@@ -178,6 +180,12 @@ export function ElectrolineraSimulator() {
               <input type="range" min="0" max="30" step="1" value={demandGrowth} onChange={(e) => setDemandGrowth(Number(e.target.value))} className="w-full accent-[#D8DA00]" />
             </div>
           </div>
+          <button 
+            onClick={() => setIsFormOpen(true)}
+            className="w-full mt-4 flex justify-center items-center gap-2 px-4 py-3 bg-[#D8DA00] hover:bg-[#D8DA00]/90 text-[#0D4651] font-bold rounded-xl transition-all shadow-lg"
+          >
+            Solicitar Propuesta Comercial
+          </button>
         </div>
 
         {/* Charts & Data */}
@@ -215,6 +223,15 @@ export function ElectrolineraSimulator() {
           </div>
         </div>
       </div>
+      <SimulationLeadForm 
+        isOpen={isFormOpen} 
+        onClose={() => setIsFormOpen(false)} 
+        simulationPayload={{
+          assetType: 'ELECTROLINERA',
+          selectedTier: tier,
+          customParameters: { vehicleCapacity, retailPrice, wholesaleCost, inflationRate, demandGrowth }
+        }} 
+      />
     </div>
   );
 }

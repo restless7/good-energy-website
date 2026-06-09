@@ -1,13 +1,24 @@
 "use client";
 
 import { useState } from 'react';
-import { Search, Zap, BatteryCharging, TrendingUp, Sun, Plug } from 'lucide-react';
+import { Search, Zap, BatteryCharging, TrendingUp, Sun, Plug, Activity } from 'lucide-react';
+import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 const mockSessions = [
   { id: '1', node: 'SAN-02-BUCARAMANGA', tier: 'Tier 03 (240kW)', source: 'SOLAR_PARK', duration: 32, kwh: 95, grossBilling: 45.50, energyInputCost: 5.20, margin: 40.30, date: '2026-06-09T08:30:00' },
   { id: '2', node: 'GIR-01-INDUSTRIAL', tier: 'Tier 02 (120kW)', source: 'GRID', duration: 45, kwh: 70, grossBilling: 33.60, energyInputCost: 21.00, margin: 12.60, date: '2026-06-09T09:15:00' },
   { id: '3', node: 'MED-05-POBLADO', tier: 'Tier 01 (60kW)', source: 'SOLAR_PARK', duration: 25, kwh: 22, grossBilling: 10.56, energyInputCost: 1.20, margin: 9.36, date: '2026-06-09T10:05:00' },
   { id: '4', node: 'SAN-02-BUCARAMANGA', tier: 'Tier 03 (240kW)', source: 'GRID', duration: 18, kwh: 54, grossBilling: 25.92, energyInputCost: 16.20, margin: 9.72, date: '2026-06-09T11:20:00' },
+  { id: '4', node: 'SAN-02-BUCARAMANGA', tier: 'Tier 03 (240kW)', source: 'GRID', duration: 18, kwh: 54, grossBilling: 25.92, energyInputCost: 16.20, margin: 9.72, date: '2026-06-09T11:20:00' },
+];
+
+const varianceData = [
+  { month: 'Ene', projectedProfit: 60.5, realProfit: 62.1 },
+  { month: 'Feb', projectedProfit: 61.5, realProfit: 58.2 },
+  { month: 'Mar', projectedProfit: 63.0, realProfit: 68.5 },
+  { month: 'Abr', projectedProfit: 64.0, realProfit: 61.8 },
+  { month: 'May', projectedProfit: 65.5, realProfit: 71.2 },
+  { month: 'Jun', projectedProfit: 67.0, realProfit: 75.0 },
 ];
 
 export default function GrossMarginLedgerPage() {
@@ -42,6 +53,33 @@ export default function GrossMarginLedgerPage() {
         <div className="bg-[#0E4D58] p-4 rounded-xl border border-[#1A6B78]/50 border-t-4 border-t-[#D8DA00]">
           <p className="text-xs text-[#D8DA00] uppercase tracking-wider font-bold">Net Gross Margin</p>
           <p className="text-2xl font-bold text-[#FFFDF0] mt-1">{fmt(71.98)}</p>
+        </div>
+      </div>
+
+      {/* Variance Engine Visualizer */}
+      <div className="bg-[#0E4D58] p-6 rounded-2xl border border-[#1A6B78]/50">
+        <div className="flex justify-between items-center mb-6 border-b border-[#1A6B78]/30 pb-4">
+          <div className="flex items-center gap-2">
+            <Activity className="w-5 h-5 text-[#D8DA00]" />
+            <h3 className="text-lg font-bold text-[#FFFDF0]">Financial Variance Engine: Actual vs Model</h3>
+          </div>
+        </div>
+        <div className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart data={varianceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1A6B78" vertical={false} />
+              <XAxis dataKey="month" stroke="#8CB4BC" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis stroke="#8CB4BC" fontSize={12} tickFormatter={(v) => `$${v}k`} tickLine={false} axisLine={false} domain={['auto', 'auto']} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#052126', borderColor: '#1A6B78', color: '#FFFDF0', borderRadius: '8px' }}
+                itemStyle={{ color: '#FFFDF0' }}
+                formatter={(value: number) => `$${value.toFixed(1)}k USD`}
+              />
+              <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px', color: '#8CB4BC' }} />
+              <Bar dataKey="realProfit" name="Utilidad Real Dispatched" fill="#1A6B78" radius={[4, 4, 0, 0]} maxBarSize={40} />
+              <Line type="stepAfter" dataKey="projectedProfit" name="Proyección Teórica (Underwriting Baseline)" stroke="#D8DA00" strokeWidth={3} strokeDasharray="5 5" dot={false} />
+            </ComposedChart>
+          </ResponsiveContainer>
         </div>
       </div>
 

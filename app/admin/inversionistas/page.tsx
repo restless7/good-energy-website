@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Users, Search, Plus, Filter, MoreVertical, Mail, Phone, MapPin } from 'lucide-react';
+import { Users, Search, Plus, Filter, MoreVertical, Mail, Phone, MapPin, Zap, Sun, BarChart } from 'lucide-react';
 import { useRBAC } from '@/hooks/useRBAC';
 
 // Mock data matching the new schema requirements
@@ -22,9 +22,25 @@ const mockInvestors = [
   },
 ];
 
+const mockLeads = [
+  {
+    id: 'L1', name: 'Sebastian Garcia', email: 's.garcia@corporation.com', phone: '+57 300 111 2222',
+    assetType: 'ELECTROLINERA', selectedTier: 'TIER_03',
+    customParameters: { vehicleCapacity: 60, retailPrice: 2000, wholesaleCost: 900, inflationRate: 5, demandGrowth: 15 },
+    createdAt: '2026-06-09T10:00:00Z'
+  },
+  {
+    id: 'L2', name: 'Laura Martinez', email: 'laura.m@inversiones.co', phone: '+57 310 555 7777',
+    assetType: 'SOLAR_FARM', unitsCount: 5,
+    customParameters: { inflationRate: 7 },
+    createdAt: '2026-06-08T15:30:00Z'
+  }
+];
+
 export default function InversionistasPage() {
   const { isSuperAdmin } = useRBAC();
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<'SYNDICATE' | 'PROSPECTS'>('SYNDICATE');
 
   const filteredInvestors = mockInvestors.filter(inv => {
     const matchesSearch = inv.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -49,13 +65,39 @@ export default function InversionistasPage() {
         </button>
       </div>
 
+      {/* Tabs */}
+      <div className="flex flex-col sm:flex-row gap-4 border-b border-[#1A6B78]/30 pb-1">
+        <button
+          onClick={() => setActiveTab('SYNDICATE')}
+          className={`flex items-center gap-3 px-6 py-4 rounded-t-xl transition-colors font-bold ${
+            activeTab === 'SYNDICATE'
+              ? 'bg-[#0E4D58] text-[#D8DA00] border-b-2 border-[#D8DA00]'
+              : 'text-[#8CB4BC] hover:text-[#FFFDF0] hover:bg-[#0E4D58]/50'
+          }`}
+        >
+          <Users className="w-5 h-5" />
+          Miembros del Sindicato
+        </button>
+        <button
+          onClick={() => setActiveTab('PROSPECTS')}
+          className={`flex items-center gap-3 px-6 py-4 rounded-t-xl transition-colors font-bold ${
+            activeTab === 'PROSPECTS'
+              ? 'bg-[#0E4D58] text-[#D8DA00] border-b-2 border-[#D8DA00]'
+              : 'text-[#8CB4BC] hover:text-[#FFFDF0] hover:bg-[#0E4D58]/50'
+          }`}
+        >
+          <BarChart className="w-5 h-5" />
+          Prospectos Digitales (Simulador)
+        </button>
+      </div>
+
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8CB4BC]" />
           <input
             type="text"
-            placeholder="Search syndicate members..."
+            placeholder={activeTab === 'SYNDICATE' ? "Search syndicate members..." : "Search captured simulations..."}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 bg-[#0E4D58] border border-[#1A6B78]/50 rounded-xl text-[#FFFDF0] placeholder-[#8CB4BC]/50 focus:outline-none focus:border-[#D8DA00]/50 text-sm"
@@ -63,9 +105,9 @@ export default function InversionistasPage() {
         </div>
       </div>
 
-      {/* Allocation Cards */}
+      {/* Content */}
       <div className="space-y-5">
-        {filteredInvestors.map((investor) => (
+        {activeTab === 'SYNDICATE' && filteredInvestors.map((investor) => (
           <div key={investor.id} className="bg-[#0E4D58] rounded-2xl border border-[#1A6B78]/50 overflow-hidden font-mono text-sm">
             
             {/* Card Header */}
@@ -168,6 +210,53 @@ export default function InversionistasPage() {
               </div>
             </div>
             
+          </div>
+        ))}
+
+        {activeTab === 'PROSPECTS' && mockLeads.filter(l => l.name.toLowerCase().includes(searchTerm.toLowerCase())).map((lead) => (
+          <div key={lead.id} className="bg-[#0E4D58] rounded-2xl border border-[#1A6B78]/50 overflow-hidden font-mono text-sm">
+            <div className="border-b border-[#1A6B78]/50 px-5 py-4 bg-[#0A3A43]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#1A6B78]/20 to-transparent border border-[#1A6B78]/50 rounded-xl flex items-center justify-center">
+                  {lead.assetType === 'ELECTROLINERA' ? <Zap className="w-5 h-5 text-blue-400" /> : <Sun className="w-5 h-5 text-[#D8DA00]" />}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-[#FFFDF0] uppercase tracking-wider">{lead.name}</span>
+                    <span className="text-blue-400 px-2 py-0.5 bg-blue-400/10 rounded text-[10px] font-bold">DIGITAL PROSPECT</span>
+                  </div>
+                  <div className="text-[#8CB4BC]/70 text-xs mt-1 flex items-center gap-3">
+                    <span><Mail className="w-3 h-3 inline mr-1" />{lead.email}</span>
+                    <span><Phone className="w-3 h-3 inline mr-1" />{lead.phone}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-[#8CB4BC] text-xs uppercase tracking-wider mb-1">Simulated Model</p>
+                <span className="font-bold text-[#FFFDF0]">{lead.assetType === 'ELECTROLINERA' ? lead.selectedTier : `${lead.unitsCount} Solar Units`}</span>
+              </div>
+            </div>
+
+            <div className="p-5 bg-[#0A3A43]/20">
+              <h4 className="text-[#8CB4BC] text-xs uppercase tracking-wider mb-3 font-bold border-b border-[#1A6B78]/30 pb-2">Custom Underwriting Assumptions</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {Object.entries(lead.customParameters).map(([key, value]) => (
+                  <div key={key} className="bg-[#0E4D58] p-3 rounded-lg border border-[#1A6B78]/30">
+                    <p className="text-[10px] text-[#8CB4BC] uppercase tracking-wider">{key.replace(/([A-Z])/g, ' $1')}</p>
+                    <p className="font-bold text-[#D8DA00] text-sm mt-1">{value}</p>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-6 flex justify-end gap-3">
+                <button className="px-4 py-2 border border-[#1A6B78] text-[#FFFDF0] rounded-lg text-xs font-bold hover:bg-[#1A6B78]/50">
+                  View Full Projection Curve
+                </button>
+                <button className="px-4 py-2 bg-[#D8DA00] text-[#0D4651] rounded-lg text-xs font-bold hover:bg-[#D8DA00]/90">
+                  Promote to Active Syndicate
+                </button>
+              </div>
+            </div>
           </div>
         ))}
       </div>

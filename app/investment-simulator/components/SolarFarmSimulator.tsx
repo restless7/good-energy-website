@@ -2,10 +2,12 @@
 
 import React, { useState, useMemo } from 'react';
 import { SimulatorCharts } from './SimulatorCharts';
+import { SimulationLeadForm } from './SimulationLeadForm';
 
 export function SolarFarmSimulator() {
   const [units, setUnits] = useState(1);
   const [inflationRate, setInflationRate] = useState(6);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(value);
@@ -121,6 +123,12 @@ export function SolarFarmSimulator() {
               </div>
             </div>
           </div>
+          <button 
+            onClick={() => setIsFormOpen(true)}
+            className="w-full mt-4 flex justify-center items-center gap-2 px-4 py-3 bg-[#D8DA00] hover:bg-[#D8DA00]/90 text-[#0D4651] font-bold rounded-xl transition-all shadow-lg"
+          >
+            Solicitar Propuesta Comercial
+          </button>
         </div>
 
         {/* Charts & Data */}
@@ -160,6 +168,15 @@ export function SolarFarmSimulator() {
           </div>
         </div>
       </div>
+      <SimulationLeadForm 
+        isOpen={isFormOpen} 
+        onClose={() => setIsFormOpen(false)} 
+        simulationPayload={{
+          assetType: 'SOLAR_FARM',
+          unitsCount: units,
+          customParameters: { inflationRate }
+        }} 
+      />
     </div>
   );
 }

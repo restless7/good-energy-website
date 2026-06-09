@@ -240,6 +240,7 @@ model InvestorProfile {
   leaseContractStatus  String   @default("ACTIVE") // ACTIVE, RENEWAL_PENDING
   liquidityHorizon     DateTime?
   nodes                Node[]   // Asset Portability Registry
+  simulations          SimulatedScenario[]
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
@@ -306,3 +307,29 @@ model RetailSession {
   @@map("retail_sessions")
 }
 
+model SimulatedScenario {
+  id                String   @id @default(cuid())
+  leadName          String
+  leadEmail         String
+  leadPhone         String
+  assetType         String   // "ELECTROLINERA" or "SOLAR_FARM"
+  selectedTier      String?  // e.g., 'TIER_1', 'TIER_2', 'TIER_3'
+  unitsCount        Int      @default(1)
+  customParameters  Json     // { vehicleCapacity, retailPrice, wholesalePrice, inflation, growth }
+  investorProfileId String?
+  investorProfile   InvestorProfile? @relation(fields: [investorProfileId], references: [id], onDelete: SetNull)
+  createdAt         DateTime @default(now())
+
+  @@map("simulated_scenarios")
+}
+
+model EnergySpotPrice {
+  id              String   @id @default(cuid())
+  hourlyTimestamp DateTime
+  pricePerKWh     Float
+  gridRegion      String
+  createdAt       DateTime @default(now())
+
+  @@unique([hourlyTimestamp, gridRegion])
+  @@map("energy_spot_prices")
+}
