@@ -35,6 +35,8 @@ export interface CreateTaskInput {
   priority?: TaskPriority
   dueDate?: string
   status?: TaskStatus
+  goalId?: string
+  milestoneId?: string
 }
 
 export interface AddMilestoneInput {
@@ -86,6 +88,8 @@ export interface PartnerProfileWithData {
     status: string
     priority: string
     dueDate: Date | null
+    goalId: string | null
+    milestoneId: string | null
     assignedBy: string
     createdAt: Date
   }>
@@ -204,6 +208,8 @@ export async function createPartnerTaskAction(input: CreateTaskInput): Promise<A
         status: input.status ?? 'TODO',
         dueDate: input.dueDate ? new Date(input.dueDate) : undefined,
         assignedBy: actorId,
+        goalId: input.goalId,
+        milestoneId: input.milestoneId,
       },
     })
 
@@ -276,16 +282,18 @@ export async function updateGoalStatusAction(
 // PARTNER ACTIONS (self-service)
 // ===========================
 
-export async function getMyPartnerWorkspaceAction(): Promise<ActionResult<PartnerProfileWithData>> {
+export async function getMyPartnerWorkspaceAction(
+  overridePartnerId?: string
+): Promise<ActionResult<PartnerProfileWithData>> {
   try {
     const { userId, role } = await assertPartnerOrAdmin()
 
     let profile
 
     if (role === 'SUPER_ADMIN') {
-      // Super admins preview the first *active* profile for the workspace view
+      const whereClause = overridePartnerId ? { id: overridePartnerId } : { isActive: true }
       profile = await prisma.partnerProfile.findFirst({
-        where: { isActive: true },
+        where: whereClause,
         include: {
           goals: { include: { milestones: true } },
           milestones: true,
@@ -323,9 +331,11 @@ export async function getMyPartnerWorkspaceAction(): Promise<ActionResult<Partne
   }
 }
 
-export async function updateTaskStatusAction(taskId: string, newStatus: TaskStatus): Promise<ActionResult> {
+export async function updateTaskStatusAction(taskId: string, newStatus: TaskStatus, targetPartnerProfileId?: string): Promise<ActionResult> {
   try {
     const { userId, role } = await assertPartnerOrAdmin()
+
+    let effectiveProfileId = targetPartnerProfileId
 
     if (role !== 'SUPER_ADMIN') {
       const user = await prisma.user.findUnique({ where: { clerkUserId: userId }, select: { id: true } })
@@ -333,46 +343,40 @@ export async function updateTaskStatusAction(taskId: string, newStatus: TaskStat
 
       const profile = await prisma.partnerProfile.findUnique({ where: { userId: user.id }, select: { id: true } })
       if (!profile) return { success: false, error: 'Partner profile not found.' }
-
-      const task = await prisma.partnerTask.findUnique({ where: { id: taskId }, select: { partnerProfileId: true } })
-      if (!task || task.partnerProfileId !== profile.id) {
-        return { success: false, error: 'Forbidden: task does not belong to your profile.' }
-      }
+      
+      effectiveProfileId = profile.id
     }
 
-    await prisma.partnerTask.update({ where: { id: taskId }, data: { status: newStatus } })
-
-    revalidatePath('/admin/mi-gestion')
-    revalidatePath('/admin/partners')
-    return { success: true }
-  } catch (err) {
-    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
-  }
-}
-
-export async function toggleMilestoneAction(milestoneId: string, isCompleted: boolean): Promise<ActionResult> {
-  try {
-    const { userId, role } = await assertPartnerOrAdmin()
-
-    if (role !== 'SUPER_ADMIN') {
-      const user = await prisma.user.findUnique({ where: { clerkUserId: userId }, select: { id: true } })
-      if (!user) return { success: false, error: 'User record not found.' }
-
-      const profile = await prisma.partnerProfile.findUnique({ where: { userId: user.id }, select: { id: true } })
-      if (!profile) return { success: false, error: 'Partner profile not found.' }
-
-      const ms = await prisma.milestone.findUnique({ where: { id: milestoneId }, select: { partnerProfileId: true } })
-      if (!ms || ms.partnerProfileId !== profile.id) {
-        return { success: false, error: 'Forbidden: milestone does not belong to your profile.' }
+    await prisma.$transaction(async (tx) => {
+      const taskCheck = await tx.partnerTask.findUnique({ where: { id: taskId }, select: { partnerProfileId: true } })
+      if (!taskCheck) throw new Error('Task not found.')
+      
+      if (effectiveProfileId && taskCheck.partnerProfileId !== effectiveProfileId) {
+        throw new Error('Forbidden: task does not belong to the authorized profile.')
       }
-    }
 
-    await prisma.milestone.update({
-      where: { id: milestoneId },
-      data: {
-        isCompleted,
-        completedAt: isCompleted ? new Date() : null,
-      },
+      await tx.partnerTask.update({ where: { id: taskId }, data: { status: newStatus } })
+
+      const task = await tx.partnerTask.findUnique({ where: { id: taskId }, select: { milestoneId: true, goalId: true } })
+      
+      let actualGoalId = task?.goalId
+
+      // 1. Recalculate Milestone if it belongs to one
+      if (task?.milestoneId) {
+        const milestoneTasks = await tx.partnerTask.findMany({ where: { milestoneId: task.milestoneId } })
+        const allDone = milestoneTasks.length > 0 && milestoneTasks.every(t => t.status === 'DONE')
+        const ms = await tx.milestone.update({
+          where: { id: task.milestoneId },
+          data: { isCompleted: allDone, completedAt: allDone ? new Date() : null },
+          select: { goalId: true }
+        })
+        if (ms.goalId) actualGoalId = ms.goalId
+      }
+
+      // 2. Recalculate Goal if it belongs to one
+      if (actualGoalId) {
+        await recalculateGoalProgress(tx, actualGoalId)
+      }
     })
 
     revalidatePath('/admin/mi-gestion')
@@ -383,11 +387,56 @@ export async function toggleMilestoneAction(milestoneId: string, isCompleted: bo
   }
 }
 
-export async function updateGoalProgressAction(goalId: string, newProgress: number): Promise<ActionResult> {
+export async function toggleMilestoneAction(milestoneId: string, isCompleted: boolean, targetPartnerProfileId?: string): Promise<ActionResult> {
   try {
     const { userId, role } = await assertPartnerOrAdmin()
 
-    let goalOwnerId: string | undefined
+    let effectiveProfileId = targetPartnerProfileId
+
+    if (role !== 'SUPER_ADMIN') {
+      const user = await prisma.user.findUnique({ where: { clerkUserId: userId }, select: { id: true } })
+      if (!user) return { success: false, error: 'User record not found.' }
+
+      const profile = await prisma.partnerProfile.findUnique({ where: { userId: user.id }, select: { id: true } })
+      if (!profile) return { success: false, error: 'Partner profile not found.' }
+      
+      effectiveProfileId = profile.id
+    }
+
+    await prisma.$transaction(async (tx) => {
+      const msCheck = await tx.milestone.findUnique({ where: { id: milestoneId }, select: { partnerProfileId: true } })
+      if (!msCheck) throw new Error('Milestone not found.')
+      
+      if (effectiveProfileId && msCheck.partnerProfileId !== effectiveProfileId) {
+        throw new Error('Forbidden: milestone does not belong to the authorized profile.')
+      }
+
+      const ms = await tx.milestone.update({
+        where: { id: milestoneId },
+        data: {
+          isCompleted,
+          completedAt: isCompleted ? new Date() : null,
+        },
+      })
+
+      if (ms.goalId) {
+        await recalculateGoalProgress(tx, ms.goalId)
+      }
+    })
+
+    revalidatePath('/admin/mi-gestion')
+    revalidatePath('/admin/partners')
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+  }
+}
+
+export async function updateGoalProgressAction(goalId: string, newProgress: number, targetPartnerProfileId?: string): Promise<ActionResult> {
+  try {
+    const { userId, role } = await assertPartnerOrAdmin()
+
+    let effectiveProfileId = targetPartnerProfileId
 
     if (role !== 'SUPER_ADMIN') {
       const user = await prisma.user.findUnique({ where: { clerkUserId: userId }, select: { id: true } })
@@ -396,21 +445,26 @@ export async function updateGoalProgressAction(goalId: string, newProgress: numb
       const profile = await prisma.partnerProfile.findUnique({ where: { userId: user.id }, select: { id: true } })
       if (!profile) return { success: false, error: 'Partner profile not found.' }
 
-      goalOwnerId = profile.id
+      effectiveProfileId = profile.id
     }
 
-    const goal = await prisma.partnerGoal.findUnique({ where: { id: goalId }, select: { partnerProfileId: true, targetValue: true } })
+    const goal = await prisma.partnerGoal.findUnique({ where: { id: goalId }, select: { partnerProfileId: true, targetValue: true, deadline: true } })
     if (!goal) return { success: false, error: 'Goal not found.' }
-    if (goalOwnerId && goal.partnerProfileId !== goalOwnerId) {
-      return { success: false, error: 'Forbidden: goal does not belong to your profile.' }
+    
+    if (effectiveProfileId && goal.partnerProfileId !== effectiveProfileId) {
+      return { success: false, error: 'Forbidden: goal does not belong to the authorized profile.' }
     }
 
     const clampedProgress = Math.max(0, Math.min(newProgress, goal.targetValue))
-    const newStatus: GoalStatus = clampedProgress >= goal.targetValue
+    let newStatus: GoalStatus = clampedProgress >= goal.targetValue
       ? 'ACHIEVED'
       : clampedProgress > 0
       ? 'IN_PROGRESS'
       : 'NOT_STARTED'
+
+    if (newStatus !== 'ACHIEVED' && goal.deadline && new Date() > goal.deadline) {
+      newStatus = 'AT_RISK'
+    }
 
     await prisma.partnerGoal.update({
       where: { id: goalId },
@@ -423,4 +477,41 @@ export async function updateGoalProgressAction(goalId: string, newProgress: numb
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
   }
+}
+
+// Helper for automated calculation
+async function recalculateGoalProgress(tx: any, goalId: string) {
+  const goal = await tx.partnerGoal.findUnique({
+    where: { id: goalId },
+    include: {
+      tasks: true,
+      milestones: { include: { tasks: true } }
+    }
+  })
+  if (!goal) return
+
+  // Gather all direct tasks and milestone tasks
+  const allTasks = [...goal.tasks, ...goal.milestones.flatMap((m: any) => m.tasks)]
+  
+  let currentProgress = 0
+  
+  if (allTasks.length > 0) {
+    const doneTasks = allTasks.filter(t => t.status === 'DONE').length
+    currentProgress = (doneTasks / allTasks.length) * goal.targetValue
+  } else if (goal.milestones.length > 0) {
+    const completedMs = goal.milestones.filter((m: any) => m.isCompleted).length
+    currentProgress = (completedMs / goal.milestones.length) * goal.targetValue
+  } else {
+    return // No automated items to calculate from
+  }
+
+  let newStatus: GoalStatus = currentProgress >= goal.targetValue ? 'ACHIEVED' : currentProgress > 0 ? 'IN_PROGRESS' : 'NOT_STARTED'
+  if (newStatus !== 'ACHIEVED' && goal.deadline && new Date() > goal.deadline) {
+    newStatus = 'AT_RISK'
+  }
+
+  await tx.partnerGoal.update({
+    where: { id: goalId },
+    data: { currentProgress, status: newStatus }
+  })
 }

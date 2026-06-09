@@ -219,7 +219,13 @@ function CreateTaskModal({
   open, onClose, profiles,
 }: { open: boolean; onClose: () => void; profiles: PartnerProfileWithData[] }) {
   const [isPending, start] = useTransition()
-  const [form, setForm] = useState({ partnerProfileId: '', title: '', description: '', priority: 'MEDIUM' as TaskPriority, status: 'TODO' as TaskStatus, dueDate: '' })
+  const [form, setForm] = useState({ partnerProfileId: '', goalId: '', milestoneId: '', title: '', description: '', priority: 'MEDIUM' as TaskPriority, status: 'TODO' as TaskStatus, dueDate: '' })
+
+  const selectedProfile = profiles.find((p) => p.id === form.partnerProfileId)
+  const availableGoals = selectedProfile?.goals || []
+  const availableMilestones = form.goalId 
+    ? selectedProfile?.milestones.filter((m) => m.goalId === form.goalId) || []
+    : selectedProfile?.milestones || []
 
   function set<K extends keyof typeof form>(k: K, v: typeof form[K]) { setForm((f) => ({ ...f, [k]: v })) }
 
@@ -235,11 +241,13 @@ function CreateTaskModal({
         priority: form.priority,
         status: form.status,
         dueDate: form.dueDate || undefined,
+        goalId: form.goalId || undefined,
+        milestoneId: form.milestoneId || undefined,
       })
       if (r.success) {
         toast.success('Tarea asignada exitosamente', { id })
         onClose()
-        setForm({ partnerProfileId: '', title: '', description: '', priority: 'MEDIUM', status: 'TODO', dueDate: '' })
+        setForm({ partnerProfileId: '', goalId: '', milestoneId: '', title: '', description: '', priority: 'MEDIUM', status: 'TODO', dueDate: '' })
       } else {
         toast.error(r.error ?? 'Error al asignar tarea', { id })
       }
@@ -250,11 +258,27 @@ function CreateTaskModal({
     <Modal open={open} onClose={onClose} title="Asignar Tarea a Partner">
       <form onSubmit={submit} className="space-y-4">
         <Field label="Partner *">
-          <select value={form.partnerProfileId} onChange={(e) => set('partnerProfileId', e.target.value)} className={selectCls} required>
+          <select value={form.partnerProfileId} onChange={(e) => { set('partnerProfileId', e.target.value); set('goalId', ''); set('milestoneId', '') }} className={selectCls} required>
             <option value="">Seleccionar partner…</option>
             {profiles.map((p) => <option key={p.id} value={p.id}>{p.displayName}</option>)}
           </select>
         </Field>
+        {selectedProfile && availableGoals.length > 0 && (
+          <Field label="Vincular a objetivo (opcional)">
+            <select value={form.goalId} onChange={(e) => { set('goalId', e.target.value); set('milestoneId', '') }} className={selectCls}>
+              <option value="">Sin objetivo vinculado</option>
+              {availableGoals.map((g) => <option key={g.id} value={g.id}>{g.title}</option>)}
+            </select>
+          </Field>
+        )}
+        {selectedProfile && availableMilestones.length > 0 && (
+          <Field label="Vincular a hito (opcional)">
+            <select value={form.milestoneId} onChange={(e) => set('milestoneId', e.target.value)} className={selectCls}>
+              <option value="">Sin hito vinculado</option>
+              {availableMilestones.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
+            </select>
+          </Field>
+        )}
         <Field label="Título *">
           <input value={form.title} onChange={(e) => set('title', e.target.value)} placeholder="ej. Presentar reporte Q2" className={inputCls} required />
         </Field>
@@ -568,10 +592,11 @@ export default function PartnersMasterClient({ initialProfiles, partnerClerkUser
   const [filterPartner, setFilterPartner] = useState('ALL')
   const [filterPriority, setFilterPriority] = useState<TaskPriority | 'ALL'>('ALL')
   const [filterStatus, setFilterStatus] = useState<TaskStatus | 'ALL'>('ALL')
-  const [tab, setTab] = useState<'overview' | 'tasks' | 'goals'>('overview')
+  const [tab, setTab] = useState<'overview' | 'timeline' | 'tasks' | 'goals'>('overview')
 
   const allTasks = profiles.flatMap((p) => p.tasks.map((t) => ({ ...t, partnerName: p.displayName, partnerProfileId: p.id })))
-  const allGoals = profiles.flatMap((p) => p.goals.map((g) => ({ ...g, partnerName: p.displayName })))
+  const allGoals = profiles.flatMap((p) => p.goals.map((g) => ({ ...g, partnerName: p.displayName, partnerProfileId: p.id })))
+  const allMilestones = profiles.flatMap((p) => p.milestones.map((m) => ({ ...m, partnerName: p.displayName, partnerProfileId: p.id })))
 
   const filteredTasks = allTasks.filter((t) => {
     const mp = filterPartner === 'ALL' || t.partnerProfileId === filterPartner
@@ -630,14 +655,14 @@ export default function PartnersMasterClient({ initialProfiles, partnerClerkUser
 
       {/* ── Tabs ── */}
       <div className="flex gap-1 bg-[#0A3A43]/60 p-1 rounded-xl w-fit">
-        {(['overview', 'tasks', 'goals'] as const).map((t) => (
+        {(['overview', 'timeline', 'tasks', 'goals'] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t ? 'bg-[#D8DA00] text-[#0D4651]' : 'text-[#8CB4BC] hover:text-[#FFFDF0]'}`}>
-            {t === 'overview' ? 'Resumen' : t === 'tasks' ? 'Tareas' : 'Objetivos'}
+            {t === 'overview' ? 'Resumen' : t === 'timeline' ? 'Línea de Tiempo' : t === 'tasks' ? 'Tareas' : 'Objetivos'}
           </button>
         ))}
       </div>
 
-      {/* ── Filters (tasks/goals tabs) ── */}
+      {/* ── Filters (tasks/goals/timeline tabs) ── */}
       {tab !== 'overview' && (
         <div className="flex flex-wrap gap-3">
           <select value={filterPartner} onChange={(e) => setFilterPartner(e.target.value)} className="px-3 py-2 bg-[#0E4D58] border border-[#1A6B78]/50 rounded-xl text-sm text-[#8CB4BC] focus:outline-none cursor-pointer">
@@ -671,6 +696,72 @@ export default function PartnersMasterClient({ initialProfiles, partnerClerkUser
           ) : (
             profiles.map((p) => <PartnerCard key={p.id} profile={p} onDelete={handleDelete} />)
           )}
+        </div>
+      )}
+
+      {tab === 'timeline' && (
+        <div className="bg-[#0E4D58] rounded-2xl border border-[#1A6B78]/40 p-6">
+          <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-[#1A6B78]/50 before:to-transparent">
+            {(() => {
+              type TimelineItem = { id: string; type: 'goal' | 'milestone' | 'task'; date: Date; title: string; subtitle: string; partnerName: string; status: string; completed: boolean }
+              
+              const timelineItems: TimelineItem[] = []
+              
+              allGoals.filter(g => filterPartner === 'ALL' || g.partnerProfileId === filterPartner).forEach(g => {
+                if (g.deadline) {
+                  timelineItems.push({ id: `goal-${g.id}`, type: 'goal', date: new Date(g.deadline), title: g.title, subtitle: `Objetivo: ${g.targetMetric}`, partnerName: g.partnerName, status: g.status, completed: g.status === 'ACHIEVED' })
+                }
+              })
+              
+              allMilestones.filter(m => filterPartner === 'ALL' || m.partnerProfileId === filterPartner).forEach(m => {
+                if (m.dueDate) {
+                  timelineItems.push({ id: `ms-${m.id}`, type: 'milestone', date: new Date(m.dueDate), title: m.title, subtitle: m.goalId ? `Hito de objetivo vinculado` : 'Hito independiente', partnerName: m.partnerName, status: m.isCompleted ? 'Completado' : 'Pendiente', completed: m.isCompleted })
+                }
+              })
+              
+              filteredTasks.forEach(t => {
+                if (t.dueDate) {
+                  timelineItems.push({ id: `task-${t.id}`, type: 'task', date: new Date(t.dueDate), title: t.title, subtitle: `Tarea: ${PRIORITY_STYLES[t.priority as TaskPriority]?.label}`, partnerName: t.partnerName, status: TASK_STATUS_STYLES[t.status as TaskStatus]?.label || '', completed: t.status === 'DONE' })
+                }
+              })
+
+              timelineItems.sort((a, b) => a.date.getTime() - b.date.getTime())
+
+              if (timelineItems.length === 0) {
+                return (
+                  <div className="flex flex-col items-center py-8 text-center relative z-10">
+                    <Calendar className="w-10 h-10 text-[#1A6B78] mb-2" />
+                    <p className="text-[#8CB4BC]">No hay elementos con fecha límite para mostrar en la línea de tiempo.</p>
+                  </div>
+                )
+              }
+
+              return timelineItems.map((item, i) => (
+                <div key={item.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                  <div className={`flex items-center justify-center rounded-full shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 ${
+                    item.type === 'goal' ? 'w-12 h-12 border-4 border-[#D8DA00]/30 bg-[#0A3A43] text-[#D8DA00] shadow-[0_0_15px_rgba(216,218,0,0.3)]' :
+                    item.type === 'milestone' ? 'w-10 h-10 border-4 border-blue-500/30 bg-blue-500/10 text-blue-400' :
+                    'w-6 h-6 border-[3px] border-[#1A6B78] bg-[#0E4D58] text-[#8CB4BC]'
+                  }`}>
+                    {item.type === 'goal' && <Target className="w-5 h-5" />}
+                    {item.type === 'milestone' && <BarChart3 className="w-4 h-4" />}
+                  </div>
+                  <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-[#0A3A43]/50 p-4 rounded-xl border border-[#1A6B78]/30">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-semibold text-[#8CB4BC] tracking-wide uppercase">
+                        {item.date.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${item.completed ? 'bg-[#D8DA00]/10 text-[#D8DA00]' : 'bg-[#1A6B78]/20 text-[#8CB4BC]'}`}>
+                        {item.status}
+                      </span>
+                    </div>
+                    <p className="text-sm font-bold text-[#FFFDF0]">{item.title}</p>
+                    <p className="text-xs text-[#8CB4BC]/70 mt-1">{item.subtitle} • {item.partnerName}</p>
+                  </div>
+                </div>
+              ))
+            })()}
+          </div>
         </div>
       )}
 

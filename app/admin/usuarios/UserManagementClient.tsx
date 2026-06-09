@@ -312,7 +312,7 @@ export default function UserManagementClient({
             <p className="text-[#8CB4BC] text-sm mt-1">Intenta ajustar el término de búsqueda o los filtros</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto min-h-[240px]">
             <table className="w-full min-w-[640px]">
               <thead>
                 <tr className="border-b border-[#1A6B78]/30 bg-[#0A3A43]/50">

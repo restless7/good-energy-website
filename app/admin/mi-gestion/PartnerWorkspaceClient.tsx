@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useTransition, useOptimistic } from 'react'
+import { useState, useTransition, useOptimistic, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import {
   Target,
@@ -334,6 +335,12 @@ function TaskCard({
           {task.description && (
             <p className="text-xs text-[#8CB4BC]/60 mt-1 leading-relaxed">{task.description}</p>
           )}
+          {(task.goalId || task.milestoneId) && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {task.goalId && <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-[#1A6B78]/20 text-[#8CB4BC]"><Target className="w-2.5 h-2.5"/> Vinculado a objetivo</span>}
+              {task.milestoneId && <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400"><BarChart3 className="w-2.5 h-2.5"/> Vinculado a hito</span>}
+            </div>
+          )}
         </div>
       </div>
 
@@ -362,13 +369,16 @@ interface Props {
   profile: PartnerProfileWithData
   currentUserId: string
   isSuperAdmin: boolean
+  activePartners?: { id: string; name: string }[]
 }
 
-export default function PartnerWorkspaceClient({ profile, isSuperAdmin }: Props) {
+export default function PartnerWorkspaceClient({ profile, isSuperAdmin, activePartners = [] }: Props) {
+  const router = useRouter()
   const [tasks, setTasks] = useState(profile.tasks)
   const [goals, setGoals] = useState(profile.goals)
   const [milestones, setMilestones] = useState(profile.milestones)
   const [taskFilter, setTaskFilter] = useState<TaskStatus | 'ALL'>('ALL')
+  const [tab, setTab] = useState<'overview' | 'timeline'>('overview')
 
   function handleTaskUpdate(taskId: string, newStatus: TaskStatus) {
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)))
@@ -404,178 +414,291 @@ export default function PartnerWorkspaceClient({ profile, isSuperAdmin }: Props)
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-[#FFFDF0]">Mi Gestión Operativa</h1>
-          <p className="text-sm text-[#8CB4BC] mt-0.5">
-            {profile.displayName}
-            {isSuperAdmin && <span className="ml-2 text-xs px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full">Vista Super Admin</span>}
-          </p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <p className="text-sm text-[#8CB4BC]">
+              {profile.displayName}
+            </p>
+            {isSuperAdmin && (
+              <>
+                <span className="ml-1 text-xs px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full">Vista Super Admin</span>
+                <select
+                  value={profile.id}
+                  onChange={(e) => router.push(`/admin/mi-gestion?partnerId=${e.target.value}`)}
+                  className="ml-2 px-2 py-1 bg-[#0A3A43] border border-[#1A6B78]/50 rounded-lg text-xs text-[#8CB4BC] focus:outline-none cursor-pointer"
+                >
+                  {activePartners.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </>
+            )}
+          </div>
         </div>
         <div className="flex gap-3 text-center">
           <div className="px-4 py-2 bg-[#0E4D58] rounded-xl border border-[#1A6B78]/30">
-            <p className="text-lg font-bold text-[#D8DA00]">{achievedGoals}/{totalGoals}</p>
-            <p className="text-xs text-[#8CB4BC]">Objetivos</p>
+            <p className="text-lg font-bold text-[#D8DA00]">{totalGoals > 0 ? `${achievedGoals}/${totalGoals}` : '0'}</p>
+            <p className="text-xs text-[#8CB4BC]">{totalGoals > 0 ? 'Objetivos' : 'Asignados'}</p>
           </div>
           <div className="px-4 py-2 bg-[#0E4D58] rounded-xl border border-[#1A6B78]/30">
-            <p className="text-lg font-bold text-blue-400">{doneTasks}/{totalTasks}</p>
-            <p className="text-xs text-[#8CB4BC]">Tareas</p>
+            <p className="text-lg font-bold text-blue-400">{totalTasks > 0 ? `${doneTasks}/${totalTasks}` : '0'}</p>
+            <p className="text-xs text-[#8CB4BC]">{totalTasks > 0 ? 'Tareas' : 'Asignados'}</p>
           </div>
           <div className="px-4 py-2 bg-[#0E4D58] rounded-xl border border-[#1A6B78]/30">
-            <p className="text-lg font-bold text-[#8CB4BC]">{completedMilestones}/{milestones.length}</p>
-            <p className="text-xs text-[#8CB4BC]">Hitos</p>
+            <p className="text-lg font-bold text-[#8CB4BC]">{milestones.length > 0 ? `${completedMilestones}/${milestones.length}` : '0'}</p>
+            <p className="text-xs text-[#8CB4BC]">{milestones.length > 0 ? 'Hitos' : 'Asignados'}</p>
           </div>
         </div>
       </div>
 
-      {/* ── Goals ── */}
-      <SectionCard>
-        <div className="flex items-center gap-2 mb-5">
-          <div className="w-8 h-8 rounded-lg bg-[#D8DA00]/10 flex items-center justify-center">
-            <Target className="w-4 h-4 text-[#D8DA00]" />
-          </div>
-          <h2 className="text-base font-semibold text-[#FFFDF0]">Mis Objetivos</h2>
-          <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-[#1A6B78]/30 text-[#8CB4BC]">{goals.length}</span>
-        </div>
+      <div className="flex gap-1 bg-[#0A3A43]/60 p-1 rounded-xl w-fit">
+        {(['overview', 'timeline'] as const).map((t) => (
+          <button key={t} onClick={() => setTab(t)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t ? 'bg-[#D8DA00] text-[#0D4651]' : 'text-[#8CB4BC] hover:text-[#FFFDF0]'}`}>
+            {t === 'overview' ? 'Resumen' : 'Línea de Tiempo'}
+          </button>
+        ))}
+      </div>
 
-        {goals.length === 0 ? (
-          <p className="text-sm text-[#8CB4BC]/50 italic text-center py-6">Sin objetivos asignados aún</p>
-        ) : (
-          <div className="space-y-5">
-            {goals.map((goal) => {
-              const st = goal.status as GoalStatus
-              const style = GOAL_STATUS_STYLES[st] ?? GOAL_STATUS_STYLES.NOT_STARTED
-              const pct = goal.targetValue > 0 ? Math.min(100, (goal.currentProgress / goal.targetValue) * 100) : 0
-              const goalMilestones = milestones.filter((m) => m.goalId === goal.id)
-
-              return (
-                <div key={goal.id} className="bg-[#0A3A43]/60 rounded-xl p-4 space-y-4 border border-[#1A6B78]/20">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${style.badge}`}>
-                          {style.icon} {style.label}
-                        </span>
-                        <span className="text-xs text-[#8CB4BC]/60">{goal.targetMetric}</span>
-                      </div>
-                      <p className="text-sm font-semibold text-[#FFFDF0]">{goal.title}</p>
-                      {goal.description && (
-                        <p className="text-xs text-[#8CB4BC]/70 mt-0.5 leading-relaxed">{goal.description}</p>
-                      )}
-                    </div>
-                    {goal.deadline && (
-                      <p className="text-xs text-[#8CB4BC]/50 flex items-center gap-1 flex-shrink-0">
-                        <Calendar className="w-3 h-3" />
-                        {new Date(goal.deadline).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <ProgressBar value={goal.currentProgress} max={goal.targetValue} showLabel />
-                    <div className="flex items-center justify-between">
-                      <span className={`text-lg font-bold ${pct >= 100 ? 'text-[#D8DA00]' : 'text-blue-400'}`}>
-                        {pct.toFixed(1)}%
-                      </span>
-                      <GoalProgressInput
-                        goalId={goal.id}
-                        currentProgress={goal.currentProgress}
-                        targetValue={goal.targetValue}
-                        onUpdate={handleProgressUpdate}
-                      />
-                    </div>
-                  </div>
-
-                  {goalMilestones.length > 0 && (
-                    <div className="pt-2 border-t border-[#1A6B78]/20 space-y-1.5">
-                      <p className="text-xs font-medium text-[#8CB4BC] mb-2">Hitos de este objetivo</p>
-                      {goalMilestones.map((ms) => (
-                        <MilestoneRow key={ms.id} milestone={ms} onToggle={handleMilestoneToggle} />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </SectionCard>
-
-      {/* ── Milestones (standalone, not linked to a goal) ── */}
-      {milestones.some((m) => !m.goalId) && (
+      {tab === 'timeline' && (
         <SectionCard>
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-[#1A6B78]/30 flex items-center justify-center">
-              <BarChart3 className="w-4 h-4 text-[#8CB4BC]" />
+          <div className="flex items-center gap-2 mb-6">
+            <div className="w-8 h-8 rounded-lg bg-[#D8DA00]/10 flex items-center justify-center">
+              <Calendar className="w-4 h-4 text-[#D8DA00]" />
             </div>
-            <h2 className="text-base font-semibold text-[#FFFDF0]">Hitos Generales</h2>
+            <h2 className="text-base font-semibold text-[#FFFDF0]">Línea de Tiempo Operativa</h2>
           </div>
+          <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-[#1A6B78]/50 before:to-transparent">
+            {(() => {
+              type TimelineItem = { id: string; type: 'goal' | 'milestone' | 'task'; date: Date; title: string; subtitle: string; status: string; completed: boolean }
+              
+              const timelineItems: TimelineItem[] = []
+              
+              goals.forEach(g => {
+                if (g.deadline) {
+                  timelineItems.push({ id: `goal-${g.id}`, type: 'goal', date: new Date(g.deadline), title: g.title, subtitle: `Objetivo: ${g.targetMetric}`, status: g.status, completed: g.status === 'ACHIEVED' })
+                }
+              })
+              
+              milestones.forEach(m => {
+                if (m.dueDate) {
+                  timelineItems.push({ id: `ms-${m.id}`, type: 'milestone', date: new Date(m.dueDate), title: m.title, subtitle: m.goalId ? `Hito vinculado` : 'Hito general', status: m.isCompleted ? 'Completado' : 'Pendiente', completed: m.isCompleted })
+                }
+              })
+              
+              tasks.forEach(t => {
+                if (t.dueDate) {
+                  timelineItems.push({ id: `task-${t.id}`, type: 'task', date: new Date(t.dueDate), title: t.title, subtitle: `Tarea: ${PRIORITY_MAP[t.priority]?.label}`, status: TASK_STATUS_STYLES[t.status as TaskStatus]?.label || '', completed: t.status === 'DONE' })
+                }
+              })
 
-          <div className="space-y-1.5">
-            {openMilestones.filter((m) => !m.goalId).map((ms) => (
-              <MilestoneRow key={ms.id} milestone={ms} onToggle={handleMilestoneToggle} />
-            ))}
-            {completedMilestonesList.filter((m) => !m.goalId).map((ms) => (
-              <MilestoneRow key={ms.id} milestone={ms} onToggle={handleMilestoneToggle} />
-            ))}
+              timelineItems.sort((a, b) => a.date.getTime() - b.date.getTime())
+
+              if (timelineItems.length === 0) {
+                return (
+                  <div className="flex flex-col items-center py-8 text-center relative z-10">
+                    <p className="text-[#8CB4BC]">No hay elementos con fecha límite para mostrar.</p>
+                  </div>
+                )
+              }
+
+              return timelineItems.map((item) => (
+                <div key={item.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                  <div className={`flex items-center justify-center rounded-full shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 ${
+                    item.type === 'goal' ? 'w-12 h-12 border-4 border-[#D8DA00]/30 bg-[#0A3A43] text-[#D8DA00] shadow-[0_0_15px_rgba(216,218,0,0.3)]' :
+                    item.type === 'milestone' ? 'w-10 h-10 border-4 border-blue-500/30 bg-blue-500/10 text-blue-400' :
+                    'w-6 h-6 border-[3px] border-[#1A6B78] bg-[#0E4D58] text-[#8CB4BC]'
+                  }`}>
+                    {item.type === 'goal' && <Target className="w-5 h-5" />}
+                    {item.type === 'milestone' && <MilestoneIcon className="w-4 h-4" />}
+                  </div>
+                  <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-[#0A3A43]/50 p-4 rounded-xl border border-[#1A6B78]/30">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-semibold text-[#8CB4BC] tracking-wide uppercase">
+                        {item.date.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${item.completed ? 'bg-[#D8DA00]/10 text-[#D8DA00]' : 'bg-[#1A6B78]/20 text-[#8CB4BC]'}`}>
+                        {item.status}
+                      </span>
+                    </div>
+                    <p className="text-sm font-bold text-[#FFFDF0]">{item.title}</p>
+                    <p className="text-xs text-[#8CB4BC]/70 mt-1">{item.subtitle}</p>
+                  </div>
+                </div>
+              ))
+            })()}
           </div>
         </SectionCard>
       )}
 
-      {/* ── Tasks ── */}
-      <SectionCard>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-              <CheckSquare className="w-4 h-4 text-blue-400" />
-            </div>
-            <h2 className="text-base font-semibold text-[#FFFDF0]">Mis Tareas</h2>
-            <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-[#1A6B78]/30 text-[#8CB4BC]">{tasks.length}</span>
-          </div>
+      {tab === 'overview' && (
+        <div className="space-y-6">
+          {goals.length === 0 && milestones.length === 0 && tasks.length === 0 ? (
+            <SectionCard className="py-12 flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-full bg-[#1A6B78]/20 flex items-center justify-center mb-4">
+                <Target className="w-8 h-8 text-[#8CB4BC]" />
+              </div>
+              {isSuperAdmin ? (
+                <>
+                  <h2 className="text-xl font-bold text-[#FFFDF0] mb-2">Esta cuenta no tiene objetivos</h2>
+                  <p className="text-[#8CB4BC] text-sm mb-6 max-w-md">
+                    El centro operativo está vacío. Inicia asignando el primer objetivo estratégico para activar la jerarquía.
+                  </p>
+                  <button className="px-4 py-2 bg-[#D8DA00] text-[#0D4651] font-semibold rounded-lg hover:bg-[#D8DA00]/90 transition-colors shadow-lg">
+                    + Crear primer Objetivo para este Partner
+                  </button>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-xl font-bold text-[#FFFDF0] mb-2">Bienvenido a tu centro operativo</h2>
+                  <p className="text-[#8CB4BC] text-sm max-w-md">
+                    Tu asesor asignará tus objetivos estratégicos pronto. Mantente al tanto.
+                  </p>
+                </>
+              )}
+            </SectionCard>
+          ) : (
+            <>
+              {/* ── Hierarchical Goals ── */}
+              {goals.length > 0 && (
+                <SectionCard>
+                  <div className="flex items-center gap-2 mb-5">
+                    <div className="w-8 h-8 rounded-lg bg-[#D8DA00]/10 flex items-center justify-center">
+                      <Target className="w-4 h-4 text-[#D8DA00]" />
+                    </div>
+                    <h2 className="text-base font-semibold text-[#FFFDF0]">Jerarquía de Objetivos</h2>
+                  </div>
 
-          {/* Status filter pills */}
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              onClick={() => setTaskFilter('ALL')}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${taskFilter === 'ALL' ? 'bg-[#D8DA00] text-[#0D4651]' : 'bg-[#0A3A43] text-[#8CB4BC] hover:text-[#FFFDF0]'}`}
-            >
-              Todas
-            </button>
-            {TASK_STATUS_LIST.map((s) => (
-              <button
-                key={s}
-                onClick={() => setTaskFilter(s)}
-                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${taskFilter === s ? 'bg-[#D8DA00] text-[#0D4651]' : 'bg-[#0A3A43] text-[#8CB4BC] hover:text-[#FFFDF0]'}`}
-              >
-                {TASK_STATUS_STYLES[s].label}
-              </button>
-            ))}
-          </div>
+                  <div className="space-y-4">
+                    {goals.map((goal) => {
+                      const st = goal.status as GoalStatus
+                      const style = GOAL_STATUS_STYLES[st] ?? GOAL_STATUS_STYLES.NOT_STARTED
+                      const pct = goal.targetValue > 0 ? Math.min(100, (goal.currentProgress / goal.targetValue) * 100) : 0
+                      const goalMilestones = milestones.filter((m) => m.goalId === goal.id)
+                      const directTasks = tasks.filter((t) => t.goalId === goal.id && !t.milestoneId)
+                      const hasChildren = goalMilestones.length > 0 || directTasks.length > 0
+
+                      return (
+                        <details key={goal.id} className="group bg-[#0A3A43]/60 rounded-xl border border-[#1A6B78]/20 [&_summary::-webkit-details-marker]:hidden overflow-hidden transition-all duration-300">
+                          <summary className="flex items-start justify-between gap-3 p-4 cursor-pointer hover:bg-[#0E4D58]/40 transition-colors">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${style.badge}`}>
+                                  {style.icon} {style.label}
+                                </span>
+                                <span className="text-xs text-[#8CB4BC]/60">{goal.targetMetric}</span>
+                              </div>
+                              <p className="text-sm font-semibold text-[#FFFDF0]">{goal.title}</p>
+                            </div>
+                            <div className="flex items-center gap-4 flex-shrink-0">
+                              <div className="text-right">
+                                <span className={`text-lg font-bold block leading-none mb-1 ${pct >= 100 ? 'text-[#D8DA00]' : 'text-blue-400'}`}>
+                                  {pct.toFixed(1)}%
+                                </span>
+                                <div className="w-20 bg-[#0A3A43] rounded-full h-1.5 overflow-hidden">
+                                  <div className={`h-full rounded-full transition-all duration-700 ${pct >= 100 ? 'bg-[#D8DA00]' : 'bg-blue-400'}`} style={{ width: `${pct}%` }} />
+                                </div>
+                              </div>
+                              {hasChildren && (
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#1A6B78]/20 group-hover:bg-[#1A6B78]/40 transition-colors">
+                                  <ChevronDown className="w-4 h-4 text-[#8CB4BC] transition-transform duration-300 group-open:rotate-180" />
+                                </div>
+                              )}
+                            </div>
+                          </summary>
+                          
+                          {hasChildren && (
+                            <div className="p-4 pt-0 border-t border-[#1A6B78]/20 bg-[#0A3A43]/30 space-y-4">
+                              {/* Direct Tasks inside Goal */}
+                              {directTasks.length > 0 && (
+                                <div className="space-y-2 mt-4 pl-2">
+                                  <p className="text-xs font-medium text-[#8CB4BC] mb-1">Tareas Directas</p>
+                                  {directTasks.map(t => (
+                                    <TaskCard key={t.id} task={t} onStatusUpdate={handleTaskUpdate} />
+                                  ))}
+                                </div>
+                              )}
+                              {/* Milestones inside Goal */}
+                              {goalMilestones.map(ms => {
+                                const msTasks = tasks.filter(t => t.milestoneId === ms.id)
+                                return (
+                                  <details key={ms.id} className="group/ms bg-[#0E4D58]/50 rounded-lg border border-[#1A6B78]/20 [&_summary::-webkit-details-marker]:hidden overflow-hidden mt-4 pl-2">
+                                    <summary className="p-3 cursor-pointer hover:bg-[#1A6B78]/20 transition-colors">
+                                      <MilestoneRow milestone={ms} onToggle={handleMilestoneToggle} />
+                                      {msTasks.length > 0 && (
+                                        <div className="mt-1 ml-9 text-xs text-[#8CB4BC]/60 flex items-center gap-1">
+                                          <CheckSquare className="w-3 h-3" /> {msTasks.length} Tarea{msTasks.length !== 1 ? 's' : ''} anidada{msTasks.length !== 1 ? 's' : ''}
+                                          <ChevronDown className="w-3 h-3 transition-transform duration-300 group-open/ms:rotate-180 ml-auto" />
+                                        </div>
+                                      )}
+                                    </summary>
+                                    {msTasks.length > 0 && (
+                                      <div className="p-3 pt-0 border-t border-[#1A6B78]/20 bg-[#0A3A43]/40 space-y-2 pl-12">
+                                        {msTasks.map(t => (
+                                          <TaskCard key={t.id} task={t} onStatusUpdate={handleTaskUpdate} />
+                                        ))}
+                                      </div>
+                                    )}
+                                  </details>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </details>
+                      )
+                    })}
+                  </div>
+                </SectionCard>
+              )}
+
+              {/* ── Standalone Shelf ── */}
+              {(milestones.some((m) => !m.goalId) || tasks.some(t => !t.goalId && !t.milestoneId)) && (
+                <SectionCard>
+                  <h2 className="text-base font-semibold text-[#FFFDF0] mb-5 border-b border-[#1A6B78]/20 pb-3">Elementos Independientes</h2>
+                  
+                  {milestones.some((m) => !m.goalId) && (
+                    <div className="space-y-3 mb-6">
+                      <p className="text-xs font-medium text-[#8CB4BC]">Hitos sin Objetivo Asociado</p>
+                      {milestones.filter(m => !m.goalId).map(ms => {
+                        const msTasks = tasks.filter(t => t.milestoneId === ms.id)
+                        return (
+                          <details key={ms.id} className="group/ms bg-[#0A3A43]/60 rounded-xl border border-[#1A6B78]/20 [&_summary::-webkit-details-marker]:hidden overflow-hidden">
+                            <summary className="p-3 cursor-pointer hover:bg-[#0E4D58]/40 transition-colors">
+                              <MilestoneRow milestone={ms} onToggle={handleMilestoneToggle} />
+                              {msTasks.length > 0 && (
+                                <div className="mt-1 ml-9 text-xs text-[#8CB4BC]/60 flex items-center gap-1">
+                                  <CheckSquare className="w-3 h-3" /> {msTasks.length} Tarea{msTasks.length !== 1 ? 's' : ''} anidada{msTasks.length !== 1 ? 's' : ''}
+                                  <ChevronDown className="w-3 h-3 transition-transform duration-300 group-open/ms:rotate-180 ml-auto" />
+                                </div>
+                              )}
+                            </summary>
+                            {msTasks.length > 0 && (
+                              <div className="p-3 pt-0 border-t border-[#1A6B78]/20 bg-[#0A3A43]/40 space-y-2 pl-12">
+                                {msTasks.map(t => (
+                                  <TaskCard key={t.id} task={t} onStatusUpdate={handleTaskUpdate} />
+                                ))}
+                              </div>
+                            )}
+                          </details>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {tasks.some(t => !t.goalId && !t.milestoneId) && (
+                    <div className="space-y-3">
+                      <p className="text-xs font-medium text-[#8CB4BC]">Tareas Sueltas</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {tasks.filter(t => !t.goalId && !t.milestoneId).map(t => (
+                          <TaskCard key={t.id} task={t} onStatusUpdate={handleTaskUpdate} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </SectionCard>
+              )}
+            </>
+          )}
         </div>
-
-        {filteredTasks.length === 0 ? (
-          <div className="flex flex-col items-center py-10 text-center">
-            <CheckSquare className="w-10 h-10 text-[#1A6B78] mb-2" />
-            <p className="text-sm text-[#8CB4BC]">
-              {taskFilter === 'ALL' ? 'Sin tareas asignadas aún' : `Sin tareas en "${TASK_STATUS_STYLES[taskFilter].label}"`}
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {filteredTasks.map((task) => (
-              <TaskCard key={task.id} task={task} onStatusUpdate={handleTaskUpdate} />
-            ))}
-          </div>
-        )}
-
-        {/* Progress bar across all tasks */}
-        {totalTasks > 0 && (
-          <div className="mt-5 pt-4 border-t border-[#1A6B78]/20 space-y-1.5">
-            <div className="flex justify-between text-xs text-[#8CB4BC]">
-              <span>Progreso general</span>
-              <span>{doneTasks} de {totalTasks} completadas</span>
-            </div>
-            <ProgressBar value={doneTasks} max={totalTasks} />
-          </div>
-        )}
-      </SectionCard>
+      )}
     </div>
   )
 }

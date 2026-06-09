@@ -4,40 +4,48 @@ import { useState } from 'react';
 import { Users, Search, Plus, Filter, MoreVertical, Mail, Phone, MapPin } from 'lucide-react';
 import { useRBAC } from '@/hooks/useRBAC';
 
-// Mock data — will be replaced with Prisma queries
+// Mock data matching the new schema requirements
 const mockInvestors = [
-  { id: '1', name: 'Carlos Mendoza', email: 'carlos@example.com', phone: '+57 300 123 4567', country: 'Colombia', status: 'Activo', totalInvested: 150000000, investments: 3, joinedAt: '2025-03-15' },
-  { id: '2', name: 'Ana López', email: 'ana@example.com', phone: '+57 310 987 6543', country: 'Colombia', status: 'Activo', totalInvested: 80000000, investments: 2, joinedAt: '2025-06-20' },
-  { id: '3', name: 'Roberto Díaz', email: 'roberto@example.com', phone: '+57 320 555 1234', country: 'Colombia', status: 'Pendiente', totalInvested: 0, investments: 0, joinedAt: '2026-01-10' },
-  { id: '4', name: 'María García', email: 'maria@example.com', phone: '+57 315 444 5678', country: 'Panamá', status: 'Activo', totalInvested: 200000000, investments: 4, joinedAt: '2024-11-05' },
+  { 
+    id: '1', name: 'Alejandro Gomez', email: 'alejandro@example.com', phone: '+57 300 123 4567', country: 'Colombia', status: 'Activo', 
+    tier: 'Foundational Tier', capitalPlaced: 250000, projectedIrrMin: 22, projectedIrrMax: 26,
+    capexAlloc: 175000, realEstateAlloc: 50000, operationsAlloc: 25000,
+    nodeAssociations: ['Node-Bucaramanga-Centro', 'Node-Giron-Industrial'],
+    liquidityMonths: 41, leaseContractStatus: 'ACTIVE'
+  },
+  { 
+    id: '2', name: 'Ana López', email: 'ana@example.com', phone: '+57 310 987 6543', country: 'Colombia', status: 'Activo', 
+    tier: 'Growth Tier', capitalPlaced: 100000, projectedIrrMin: 18, projectedIrrMax: 22,
+    capexAlloc: 70000, realEstateAlloc: 20000, operationsAlloc: 10000,
+    nodeAssociations: ['Node-Medellin-Poblado'],
+    liquidityMonths: 52, leaseContractStatus: 'RENEWAL_PENDING'
+  },
 ];
 
 export default function InversionistasPage() {
   const { isSuperAdmin } = useRBAC();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const filteredInvestors = mockInvestors.filter(inv => {
     const matchesSearch = inv.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inv.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || inv.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    return matchesSearch;
   });
 
   const formatCurrency = (value: number) =>
-    new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(value);
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#FFFDF0]">Inversionistas</h1>
-          <p className="text-[#8CB4BC] text-sm mt-1">Gestiona los perfiles de tus inversionistas</p>
+          <h1 className="text-2xl font-bold text-[#FFFDF0]">Syndicate Investors</h1>
+          <p className="text-[#8CB4BC] text-sm mt-1">Foundational Angel Rounds & Asset Deployments</p>
         </div>
         <button className="flex items-center gap-2 px-4 py-2.5 bg-[#D8DA00] hover:bg-[#D8DA00]/90 text-[#0D4651] font-semibold rounded-xl transition-colors text-sm">
           <Plus className="w-4 h-4" />
-          Nuevo Inversionista
+          Onboard Investor
         </button>
       </div>
 
@@ -47,88 +55,121 @@ export default function InversionistasPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8CB4BC]" />
           <input
             type="text"
-            placeholder="Buscar por nombre o email..."
+            placeholder="Search syndicate members..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 bg-[#0E4D58] border border-[#1A6B78]/50 rounded-xl text-[#FFFDF0] placeholder-[#8CB4BC]/50 focus:outline-none focus:border-[#D8DA00]/50 text-sm"
           />
         </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2.5 bg-[#0E4D58] border border-[#1A6B78]/50 rounded-xl text-[#FFFDF0] focus:outline-none focus:border-[#D8DA00]/50 text-sm"
-        >
-          <option value="all">Todos los estados</option>
-          <option value="Activo">Activo</option>
-          <option value="Pendiente">Pendiente</option>
-          <option value="Inactivo">Inactivo</option>
-        </select>
       </div>
 
-      {/* Table */}
-      <div className="bg-[#0E4D58] rounded-2xl border border-[#1A6B78]/50 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-[#1A6B78]/30">
-                <th className="text-left px-6 py-4 text-xs font-medium text-[#8CB4BC] uppercase tracking-wider">Inversionista</th>
-                <th className="text-left px-6 py-4 text-xs font-medium text-[#8CB4BC] uppercase tracking-wider">Contacto</th>
-                <th className="text-left px-6 py-4 text-xs font-medium text-[#8CB4BC] uppercase tracking-wider">Estado</th>
-                <th className="text-right px-6 py-4 text-xs font-medium text-[#8CB4BC] uppercase tracking-wider">Total Invertido</th>
-                <th className="text-center px-6 py-4 text-xs font-medium text-[#8CB4BC] uppercase tracking-wider">Inversiones</th>
-                <th className="text-right px-6 py-4 text-xs font-medium text-[#8CB4BC] uppercase tracking-wider">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#1A6B78]/20">
-              {filteredInvestors.map((investor) => (
-                <tr key={investor.id} className="hover:bg-[#0A3A43]/30 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 bg-gradient-to-br from-[#D8DA00] to-[#D8DA00]/60 rounded-full flex items-center justify-center">
-                        <span className="text-[#0D4651] text-sm font-bold">{investor.name.charAt(0)}</span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-[#FFFDF0]">{investor.name}</p>
-                        <p className="text-xs text-[#8CB4BC]">{investor.country}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="text-sm text-[#FFFDF0]/80">{investor.email}</p>
-                    <p className="text-xs text-[#8CB4BC]">{investor.phone}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      investor.status === 'Activo' 
-                        ? 'bg-[#D8DA00]/10 text-[#D8DA00]' 
-                        : 'bg-orange-500/10 text-orange-400'
-                    }`}>
-                      {investor.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <p className="text-sm font-medium text-[#FFFDF0]">{formatCurrency(investor.totalInvested)}</p>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className="text-sm text-[#FFFDF0]">{investor.investments}</span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button className="p-2 hover:bg-[#1A6B78]/30 rounded-lg transition-colors">
-                      <MoreVertical className="w-4 h-4 text-[#8CB4BC]" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {/* Allocation Cards */}
+      <div className="space-y-5">
+        {filteredInvestors.map((investor) => (
+          <div key={investor.id} className="bg-[#0E4D58] rounded-2xl border border-[#1A6B78]/50 overflow-hidden font-mono text-sm">
+            
+            {/* Card Header */}
+            <div className="border-b border-[#1A6B78]/50 px-5 py-4 bg-[#0A3A43]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#D8DA00]/20 to-transparent border border-[#D8DA00]/30 rounded-xl flex items-center justify-center">
+                  <Users className="w-5 h-5 text-[#D8DA00]" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-[#FFFDF0] uppercase tracking-wider">{investor.name}</span>
+                    <span className="text-[#8CB4BC] px-2 py-0.5 bg-[#1A6B78]/30 rounded text-xs">[ {investor.tier} ]</span>
+                  </div>
+                  <div className="text-[#8CB4BC]/70 text-xs mt-1 flex items-center gap-3">
+                    <span><Mail className="w-3 h-3 inline mr-1" />{investor.email}</span>
+                    <span><Phone className="w-3 h-3 inline mr-1" />{investor.phone}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-[#8CB4BC] text-xs uppercase tracking-wider mb-1">Lease Status</p>
+                <span className={`px-2.5 py-1 rounded text-xs font-bold ${investor.leaseContractStatus === 'ACTIVE' ? 'bg-[#D8DA00]/10 text-[#D8DA00]' : 'bg-red-500/10 text-red-400'}`}>
+                  {investor.leaseContractStatus}
+                </span>
+              </div>
+            </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-[#1A6B78]/30 flex items-center justify-between">
-          <p className="text-xs text-[#8CB4BC]">
-            Mostrando {filteredInvestors.length} de {mockInvestors.length} inversionistas
-          </p>
-        </div>
+            {/* Matrix Body */}
+            <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Financials & Allocations */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-[#1A6B78]/30 pb-2">
+                  <span className="text-[#8CB4BC]">Capital Placed:</span>
+                  <span className="text-[#FFFDF0] font-bold text-base">{formatCurrency(investor.capitalPlaced)}</span>
+                </div>
+                <div className="flex items-center justify-between border-b border-[#1A6B78]/30 pb-2">
+                  <span className="text-[#8CB4BC]">Projected IRR:</span>
+                  <span className="text-[#D8DA00] font-bold">{investor.projectedIrrMin}% - {investor.projectedIrrMax}%</span>
+                </div>
+
+                <div className="pt-2 space-y-3">
+                  {/* CAPEX */}
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-[#8CB4BC]">70% Asset CAPEX</span>
+                      <span className="text-[#FFFDF0]">{formatCurrency(investor.capexAlloc)}</span>
+                    </div>
+                    <div className="w-full bg-[#0A3A43] h-2 rounded overflow-hidden">
+                      <div className="bg-[#D8DA00] h-full" style={{ width: '70%' }}></div>
+                    </div>
+                  </div>
+                  {/* Real Estate */}
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-[#8CB4BC]">20% Real Estate</span>
+                      <span className="text-[#FFFDF0]">{formatCurrency(investor.realEstateAlloc)}</span>
+                    </div>
+                    <div className="w-full bg-[#0A3A43] h-2 rounded overflow-hidden">
+                      <div className="bg-blue-400 h-full" style={{ width: '20%' }}></div>
+                    </div>
+                  </div>
+                  {/* Operations */}
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-[#8CB4BC]">10% Operations</span>
+                      <span className="text-[#FFFDF0]">{formatCurrency(investor.operationsAlloc)}</span>
+                    </div>
+                    <div className="w-full bg-[#0A3A43] h-2 rounded overflow-hidden">
+                      <div className="bg-purple-400 h-full" style={{ width: '10%' }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Safeguards & Associations */}
+              <div className="space-y-4 bg-[#0A3A43]/50 p-4 rounded-xl border border-[#1A6B78]/30">
+                <h3 className="text-[#FFFDF0] font-bold uppercase tracking-wider text-xs mb-3 border-b border-[#1A6B78]/30 pb-2">Asset Portability & Safeguards</h3>
+                
+                <div className="space-y-2">
+                  <p className="text-[#8CB4BC] text-xs uppercase tracking-wider">Node Associations (Serialized)</p>
+                  <div className="flex flex-wrap gap-2">
+                    {investor.nodeAssociations.map(node => (
+                      <span key={node} className="px-2 py-1 bg-[#0E4D58] border border-[#1A6B78] text-[#FFFDF0] rounded text-xs flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-[#D8DA00]" />
+                        {node}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-4 mt-4 border-t border-[#1A6B78]/30">
+                  <p className="text-[#8CB4BC] text-xs uppercase tracking-wider mb-2">Liquidity Vesting Clock</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full border-2 border-[#D8DA00]/30 flex items-center justify-center bg-[#0A3A43]">
+                      <span className="text-[#D8DA00] font-bold">{investor.liquidityMonths}</span>
+                    </div>
+                    <p className="text-[#FFFDF0] text-sm">Months until Year 5 Window Opens</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        ))}
       </div>
     </div>
   );

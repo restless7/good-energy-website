@@ -34,11 +34,12 @@ model User {
   country        String?
   avatar         String?
   isActive       Boolean         @default(true)
-  investments    Investment[]
-  earnings       Earning[]
-  partnerProfile PartnerProfile?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  investments      Investment[]
+  earnings         Earning[]
+  partnerProfile   PartnerProfile?
+  investorProfile  InvestorProfile?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 
   @@map("users")
 }
@@ -73,6 +74,7 @@ model Investment {
   startDate   DateTime @default(now())
   maturityDate DateTime?
   earnings    Earning[]
+  drawdowns   CapitalDrawdown[]
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   plant       SolarPlant? @relation(fields: [plantId], references: [id])
   createdAt   DateTime @default(now())
@@ -175,6 +177,7 @@ model PartnerGoal {
   startDate        DateTime @default(now())
   deadline         DateTime?
   milestones       Milestone[]
+  tasks            PartnerTask[]
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -192,6 +195,7 @@ model Milestone {
   dueDate          DateTime?
   isCompleted      Boolean  @default(false)
   completedAt      DateTime?
+  tasks            PartnerTask[]
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -208,8 +212,97 @@ model PartnerTask {
   priority         String   @default("MEDIUM")  // LOW | MEDIUM | HIGH | CRITICAL
   dueDate          DateTime?
   assignedBy       String   // clerkUserId of the SUPER_ADMIN who created the task
+  goalId           String?
+  goal             PartnerGoal? @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  milestoneId      String?
+  milestone        Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
   @@map("partner_tasks")
 }
+
+// ===========================
+// PREMIUM MOBILITY & GRID ARBITRAGE
+// ===========================
+
+model InvestorProfile {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tier                 String   @default("FOUNDATIONAL") // FOUNDATIONAL
+  totalCapitalPlaced   Float    @default(0)
+  projectedIrrMin      Float    @default(0)
+  projectedIrrMax      Float    @default(0)
+  capexAllocation      Float    @default(0) // 70%
+  realEstateAllocation Float    @default(0) // 20%
+  operationsAllocation Float    @default(0) // 10%
+  leaseContractStatus  String   @default("ACTIVE") // ACTIVE, RENEWAL_PENDING
+  liquidityHorizon     DateTime?
+  nodes                Node[]   // Asset Portability Registry
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("investor_profiles")
+}
+
+model Node {
+  id               String   @id @default(cuid())
+  serialNumber     String   @unique
+  name             String
+  location         String
+  tier             String   // Tier 01 (60kW), Tier 02 (120kW), Tier 03 (240kW)
+  status           String   @default("NORMAL")
+  warrantyActive   Boolean  @default(true)
+  warrantyExpDate  DateTime?
+  currentLoadKw    Float    @default(0)
+  dailyUtilization Float    @default(0) // percentage
+  coreVolumeKwh    Float    @default(0)
+  avgDwellTimeMins Float    @default(0)
+  investorId       String?
+  investor         InvestorProfile? @relation(fields: [investorId], references: [id], onDelete: SetNull)
+  sessions         RetailSession[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("nodes")
+}
+
+model CapitalDrawdown {
+  id            String   @id @default(cuid())
+  investmentId  String
+  investment    Investment @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+  phase         String   // "PHASE_01_IMPORT", "PHASE_02_CIVIL", "PHASE_03_ENERGIZATION"
+  description   String
+  percentage    Float    // 50, 20, 30
+  amount        Float
+  status        String   @default("ESCROWED") // ESCROWED, DISBURSED
+  pdfUrl        String?  // Field PDFs
+  verifiedAt    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("capital_drawdowns")
+}
+
+model RetailSession {
+  id                 String   @id @default(cuid())
+  nodeId             String
+  node               Node     @relation(fields: [nodeId], references: [id])
+  sessionStart       DateTime
+  sessionEnd         DateTime
+  durationMinutes    Float
+  energyDeliveredKwh Float
+  grossBilling       Float
+  energyInputCost    Float
+  source             String   @default("SOLAR_PARK") // SOLAR_PARK, GRID
+  tier               String   // e.g., TIER_01, TIER_02
+  platformFee        Float    @default(0) // 30% split
+  partnerUtility     Float    @default(0) // 70% split
+  payoutStatus       String   @default("PENDING") // PENDING, PROCESSING, SETTLED
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("retail_sessions")
+}
+

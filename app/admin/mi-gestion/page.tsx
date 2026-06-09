@@ -1,7 +1,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { Shield } from 'lucide-react'
-import { getMyPartnerWorkspaceAction } from '@/app/admin/partners/actions'
+import { getMyPartnerWorkspaceAction, getAllPartnerProfilesAction } from '@/app/admin/partners/actions'
 import PartnerWorkspaceClient from './PartnerWorkspaceClient'
 
 function AccessDenied() {
@@ -36,17 +36,26 @@ function NoProfile() {
   )
 }
 
-export default async function MiGestionPage() {
+export default async function MiGestionPage(props: { searchParams?: Promise<{ partnerId?: string }> }) {
   const { userId, sessionClaims } = await auth()
+  const searchParams = props.searchParams ? await props.searchParams : {}
 
   if (!userId) redirect('/sign-in?redirect_url=/admin/mi-gestion')
 
   const role = (sessionClaims?.metadata as Record<string, unknown> | undefined)?.role as string | undefined
   if (role !== 'SUPER_ADMIN' && role !== 'PARTNER') return <AccessDenied />
 
-  const result = await getMyPartnerWorkspaceAction()
+  const result = await getMyPartnerWorkspaceAction(searchParams.partnerId)
+
+  let activePartners: { id: string; name: string }[] = []
+  if (role === 'SUPER_ADMIN') {
+    const all = await getAllPartnerProfilesAction()
+    if (all.success && all.data) {
+      activePartners = all.data.map((p) => ({ id: p.id, name: p.displayName }))
+    }
+  }
 
   if (!result.success || !result.data) return <NoProfile />
 
-  return <PartnerWorkspaceClient profile={result.data} currentUserId={userId} isSuperAdmin={role === 'SUPER_ADMIN'} />
+  return <PartnerWorkspaceClient profile={result.data} currentUserId={userId} isSuperAdmin={role === 'SUPER_ADMIN'} activePartners={activePartners} />
 }
