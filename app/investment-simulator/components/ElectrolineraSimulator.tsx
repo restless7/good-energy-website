@@ -200,19 +200,45 @@ export function ElectrolineraSimulator() {
                 className="w-full accent-[#D8DA00]" 
               />
               
-              <div className="mt-2 p-2 bg-[#0A3A43]/50 rounded-lg border border-[#1A6B78]/30 text-[11px] space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-[#8CB4BC]">Tasa de Ocupación:</span>
-                  <span className="font-bold text-[#FFFDF0]">{(occupancyRate * 100).toFixed(1)}%</span>
+              <div className="mt-2 p-3 bg-[#0A3A43]/50 rounded-lg border border-[#1A6B78]/30 text-[11px] space-y-2">
+                <div className="flex justify-between items-end">
+                  <div className="flex flex-col">
+                    <span className="text-[#8CB4BC]">Tasa de Ocupación:</span>
+                    <span className="font-bold text-[#FFFDF0] text-sm">{(occupancyRate * 100).toFixed(1)}%</span>
+                  </div>
+                  <div className="flex flex-col text-right">
+                    <span className="text-[#8CB4BC]">Mínimo (Breakeven):</span>
+                    <span className="font-bold text-[#D8DA00]">
+                      {requiredOccupancyRate !== null 
+                        ? `${(requiredOccupancyRate * 100).toFixed(1)}%` 
+                        : 'N/A'}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-[#8CB4BC]">Ocupación de Equilibrio (10 Años):</span>
-                  <span className="font-bold text-[#D8DA00]">
-                    {requiredOccupancyRate !== null 
-                      ? `${(requiredOccupancyRate * 100).toFixed(1)}%` 
-                      : 'N/A'}
-                  </span>
-                </div>
+                
+                {requiredOccupancyRate !== null && (() => {
+                  const maxScale = Math.max(occupancyRate, requiredOccupancyRate, 0.05) * 1.5;
+                  return (
+                  <>
+                    <div className="w-full bg-[#052126] rounded-full h-2 relative mt-1 border border-[#1A6B78]/30">
+                      <div 
+                        className={`absolute top-0 left-0 h-full rounded-full transition-all duration-500 ${occupancyRate >= requiredOccupancyRate ? 'bg-[#D8DA00]' : 'bg-[#E26A5A]'}`} 
+                        style={{ width: `${Math.min(100, (occupancyRate / maxScale) * 100)}%` }} 
+                      />
+                      <div 
+                        className="absolute top-[-2px] bottom-[-2px] w-0.5 bg-[#FFFDF0] z-10" 
+                        style={{ left: `${Math.min(100, (requiredOccupancyRate / maxScale) * 100)}%` }} 
+                      />
+                    </div>
+                    <p className="text-[9px] text-center mt-1 text-[#8CB4BC]">
+                      {occupancyRate >= requiredOccupancyRate 
+                        ? 'Superando el equilibrio. ¡Rentabilidad acelerada!'
+                        : 'Aumenta el número de cargas para alcanzar el punto de equilibrio a 10 años.'
+                      }
+                    </p>
+                  </>
+                  );
+                })()}
               </div>
             </div>
 

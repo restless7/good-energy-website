@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
 
 interface SimulatorChartsProps {
   data: any[];
@@ -71,6 +71,7 @@ export function SimulatorCharts({ data }: SimulatorChartsProps) {
                 contentStyle={{ backgroundColor: '#052126', borderColor: '#1A6B78', color: '#FFFDF0', borderRadius: '8px' }}
                 formatter={(value: number) => [`${value.toFixed(2)}x`, 'Multiplier']}
               />
+              <ReferenceLine y={1} stroke="#E26A5A" strokeDasharray="3 3" label={{ position: 'top', value: 'Breakeven (1.0x)', fill: '#E26A5A', fontSize: 11 }} />
               <Line type="monotone" dataKey="cashMultiplier" name="Cash Multiplier Curve" stroke="#D8DA00" strokeWidth={4} dot={{ r: 4, fill: '#052126', stroke: '#D8DA00', strokeWidth: 2 }} activeDot={{ r: 6 }} />
             </LineChart>
           )}
