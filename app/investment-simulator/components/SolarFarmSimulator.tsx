@@ -37,16 +37,16 @@ export function SolarFarmSimulator() {
       if (breakEvenMonth === -1 && cumulativeProfits >= totalCost) {
         const previousCumulative = cumulativeProfits - netAnnualProfit;
         const remainingToBreakeven = totalCost - previousCumulative;
-        const monthsInYear = remainingToBreakeven / (netAnnualProfit / 12);
-        breakEvenMonth = (year - 1) * 12 + Math.ceil(monthsInYear);
+        const fractionalMonthsInYear = (remainingToBreakeven / netAnnualProfit) * 12;
+        breakEvenMonth = Math.round(((year - 1) * 12 + fractionalMonthsInYear) * 10) / 10;
       }
 
       data.push({
         year: `Año ${year}`,
-        grossRevenues: annualEarnings, // We assume revenues = earnings for simplicity in the chart
-        netProfit: netAnnualProfit,
-        cashMultiplier: cashMultiplier,
-        annualRoi: (netAnnualProfit / totalCost) * 100
+        grossRevenues: Math.round(annualEarnings), 
+        netProfit: Math.round(netAnnualProfit),
+        cashMultiplier: Math.round(cashMultiplier * 100) / 100,
+        annualRoi: Math.round((netAnnualProfit / totalCost) * 10000) / 100
       });
     }
 
@@ -83,7 +83,7 @@ export function SolarFarmSimulator() {
 
         <div className="bg-[#0E4D58] p-5 rounded-xl border border-[#1A6B78]/50">
           <p className="text-xs text-[#8CB4BC] uppercase tracking-wider font-semibold mb-1">Break-even Horizon</p>
-          <p className="text-2xl font-bold text-[#FFFDF0]">{breakEvenMonth !== -1 ? `${breakEvenMonth} Months` : '> 120 Months'}</p>
+          <p className="text-2xl font-bold text-[#FFFDF0]">{breakEvenMonth !== -1 ? `${breakEvenMonth} Meses` : '> 120 Meses'}</p>
           <p className="text-xs text-[#8CB4BC] mt-1">Initial CAPEX recovered</p>
         </div>
       </div>

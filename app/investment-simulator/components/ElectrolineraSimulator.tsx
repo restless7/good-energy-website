@@ -50,23 +50,23 @@ export function ElectrolineraSimulator() {
       const cashMultiplier = cumulativeProfits / capex;
 
       if (breakEvenMonth === -1 && cumulativeProfits >= capex) {
-        // Estimate the month in this year
+        // Estimate the exact fractional month in this year
         const previousCumulative = cumulativeProfits - netAnnualProfit;
         const remainingToBreakeven = capex - previousCumulative;
-        const monthsInYear = remainingToBreakeven / netMonthlyProfit;
-        breakEvenMonth = (year - 1) * 12 + Math.ceil(monthsInYear);
+        const fractionalMonthsInYear = (remainingToBreakeven / netAnnualProfit) * 12;
+        breakEvenMonth = Math.round(((year - 1) * 12 + fractionalMonthsInYear) * 10) / 10;
       }
 
       data.push({
         year: `Año ${year}`,
-        grossRevenues: monthlyGrossRev * 12,
-        netProfit: netAnnualProfit,
-        cashMultiplier: cashMultiplier,
-        monthlyKwhSold,
-        monthlyGrossRev,
-        monthlyEnergyCost,
-        netMonthlyProfit,
-        annualRoi
+        grossRevenues: Math.round(monthlyGrossRev * 12),
+        netProfit: Math.round(netAnnualProfit),
+        cashMultiplier: Math.round(cashMultiplier * 100) / 100,
+        monthlyKwhSold: Math.round(monthlyKwhSold),
+        monthlyGrossRev: Math.round(monthlyGrossRev),
+        monthlyEnergyCost: Math.round(monthlyEnergyCost),
+        netMonthlyProfit: Math.round(netMonthlyProfit),
+        annualRoi: Math.round(annualRoi * 100) / 100
       });
     }
 
@@ -108,7 +108,7 @@ export function ElectrolineraSimulator() {
 
         <div className="bg-[#0E4D58] p-5 rounded-xl border border-[#1A6B78]/50">
           <p className="text-xs text-[#8CB4BC] uppercase tracking-wider font-semibold mb-1">Break-even Horizon</p>
-          <p className="text-2xl font-bold text-[#FFFDF0]">{breakEvenMonth !== -1 ? `${breakEvenMonth} Months` : '> 120 Months'}</p>
+          <p className="text-2xl font-bold text-[#FFFDF0]">{breakEvenMonth !== -1 ? `${breakEvenMonth} Meses` : '> 120 Meses'}</p>
           <p className="text-xs text-[#8CB4BC] mt-1">Initial CAPEX recovered</p>
         </div>
       </div>

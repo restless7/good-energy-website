@@ -52,7 +52,7 @@ export function SimulatorCharts({ data }: SimulatorChartsProps) {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#1A6B78" vertical={false} />
               <XAxis dataKey="year" stroke="#8CB4BC" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis stroke="#8CB4BC" fontSize={12} tickFormatter={formatCurrency} tickLine={false} axisLine={false} />
+              <YAxis domain={['auto', 'auto']} stroke="#8CB4BC" fontSize={12} tickFormatter={formatCurrency} tickLine={false} axisLine={false} />
               <Tooltip 
                 contentStyle={{ backgroundColor: '#052126', borderColor: '#1A6B78', color: '#FFFDF0', borderRadius: '8px' }}
                 itemStyle={{ color: '#FFFDF0' }}
@@ -66,7 +66,7 @@ export function SimulatorCharts({ data }: SimulatorChartsProps) {
             <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1A6B78" vertical={false} />
               <XAxis dataKey="year" stroke="#8CB4BC" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis stroke="#8CB4BC" fontSize={12} tickFormatter={(val) => `${val}x`} tickLine={false} axisLine={false} />
+              <YAxis domain={['auto', 'auto']} stroke="#8CB4BC" fontSize={12} tickFormatter={(val) => `${val}x`} tickLine={false} axisLine={false} />
               <Tooltip 
                 contentStyle={{ backgroundColor: '#052126', borderColor: '#1A6B78', color: '#FFFDF0', borderRadius: '8px' }}
                 formatter={(value: number) => [`${value.toFixed(2)}x`, 'Multiplier']}
