@@ -2,6 +2,7 @@
 
 'use client';
 import React from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 
 const BannerInversion = () => {
@@ -49,7 +50,7 @@ const BannerInversion = () => {
           style={{ rotate: -6 }}
         >
           {/* Contenedor Interior: USA W-SCREEN PARA UN CONTROL TOTAL */}
-          <div className="w-screen max-w-6xl px-8 py-3 lg:py-6">
+          <div className="w-screen max-w-6xl px-8 py-3 lg:py-6 flex flex-col md:flex-row items-center justify-center md:gap-8">
             <h2 className="text-center text-lg lg:text-5xl font-normal text-good-white">
               <motion.span
                 initial={{ opacity: 0, y: 20 }}
@@ -62,6 +63,23 @@ const BannerInversion = () => {
                 <span className="text-good-lime">bajo riesgo, impacto real</span>
               </motion.span>
             </h2>
+            <motion.div
+               initial={{ opacity: 0, scale: 0.9 }}
+               whileInView={{ opacity: 1, scale: 1 }}
+               viewport={{ once: true, amount: 0.5 }}
+               transition={{ duration: 0.6, delay: 1 }}
+               className="mt-4 md:mt-0"
+            >
+              <Link 
+                href="/investment-simulator"
+                className="bg-good-lime text-good-dark-green px-6 py-3 rounded-full font-bold text-sm lg:text-lg hover:bg-good-white transition-colors shadow-lg whitespace-nowrap inline-flex items-center gap-2"
+              >
+                Proyectar Inversión
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </Link>
+            </motion.div>
           </div>
         </motion.div>
       </div>

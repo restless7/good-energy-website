@@ -1,23 +1,29 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { SimulatorCharts } from './SimulatorCharts';
 import { SimulationLeadForm } from './SimulationLeadForm';
 
 const TIERS = {
-  TIER_01: { name: 'Tier 01 (60kW Rápida)', capex: 120000000, baseDemand: 90 },
-  TIER_02: { name: 'Tier 02 (120kW Súper Rápida)', capex: 180000000, baseDemand: 240 },
-  TIER_03: { name: 'Tier 03 (240kW Ultra Rápida)', capex: 250000000, baseDemand: 450 },
+  TIER_01: { name: 'Tier 01 (60kW Rápida)', capex: 120000000, baseDemand: 90, power: 60 },
+  TIER_02: { name: 'Tier 02 (120kW Súper Rápida)', capex: 180000000, baseDemand: 240, power: 120 },
+  TIER_03: { name: 'Tier 03 (240kW Ultra Rápida)', capex: 250000000, baseDemand: 450, power: 240 },
 };
 
 export function ElectrolineraSimulator() {
   const [tier, setTier] = useState<keyof typeof TIERS>('TIER_02');
   const [vehicleCapacity, setVehicleCapacity] = useState(50);
+  const [chargesPerMonth, setChargesPerMonth] = useState(240);
+  const [isDaily, setIsDaily] = useState(false);
   const [retailPrice, setRetailPrice] = useState(1900);
   const [wholesaleCost, setWholesaleCost] = useState(1000);
   const [inflationRate, setInflationRate] = useState(6);
   const [demandGrowth, setDemandGrowth] = useState(10);
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  useEffect(() => {
+    setChargesPerMonth(TIERS[tier].baseDemand);
+  }, [tier]);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(value);
@@ -26,9 +32,12 @@ export function ElectrolineraSimulator() {
     const data = [];
     let cumulativeProfits = 0;
     let breakEvenMonth = -1;
+    let cumulativeProfitsFor1Charge = 0;
 
     const capex = TIERS[tier].capex;
-    const baseDemand = TIERS[tier].baseDemand;
+    const currentPower = TIERS[tier].power;
+    const hoursPerCharge = vehicleCapacity / currentPower;
+    const hoursPerMonth = 30 * 24;
 
     for (let year = 1; year <= 10; year++) {
       const inflationMultiplier = Math.pow(1 + inflationRate / 100, year - 1);
@@ -36,7 +45,8 @@ export function ElectrolineraSimulator() {
 
       const currentRetailPrice = retailPrice * inflationMultiplier;
       const currentWholesaleCost = wholesaleCost * inflationMultiplier;
-      const monthlyCharges = baseDemand * growthMultiplier;
+      
+      const monthlyCharges = chargesPerMonth * growthMultiplier;
       const monthlyKwhSold = monthlyCharges * vehicleCapacity;
 
       const monthlyGrossRev = monthlyKwhSold * currentRetailPrice;
@@ -59,6 +69,17 @@ export function ElectrolineraSimulator() {
         breakEvenMonth = Math.round(((year - 1) * 12 + fractionalMonthsInYear) * 10) / 10;
       }
 
+      // Calculation for 1 charge breakeven point
+      const monthlyChargesInYear1 = 1 * growthMultiplier;
+      const monthlyKwhSold1 = monthlyChargesInYear1 * vehicleCapacity;
+      const monthlyGrossRev1 = monthlyKwhSold1 * currentRetailPrice;
+      const monthlyEnergyCost1 = monthlyKwhSold1 * currentWholesaleCost;
+      const monthlyGatewayFee1 = monthlyGrossRev1 * 0.05;
+      const monthlyAdminFee1 = monthlyGrossRev1 * 0.10;
+      const netMonthlyProfit1 = monthlyGrossRev1 - monthlyEnergyCost1 - monthlyGatewayFee1 - monthlyAdminFee1;
+      const netAnnualProfit1 = netMonthlyProfit1 * 12;
+      cumulativeProfitsFor1Charge += netAnnualProfit1;
+
       data.push({
         year: `Año ${year}`,
         grossRevenues: Math.round(monthlyGrossRev * 12),
@@ -72,10 +93,16 @@ export function ElectrolineraSimulator() {
       });
     }
 
-    return { data, capex, breakEvenMonth };
-  }, [tier, vehicleCapacity, retailPrice, wholesaleCost, inflationRate, demandGrowth]);
+    const occupancyRate = (chargesPerMonth * hoursPerCharge) / hoursPerMonth;
+    const requiredMonthlyChargesForBreakeven = capex / cumulativeProfitsFor1Charge;
+    const requiredOccupancyRate = cumulativeProfitsFor1Charge > 0 
+      ? (requiredMonthlyChargesForBreakeven * hoursPerCharge) / hoursPerMonth 
+      : null;
 
-  const { data, capex, breakEvenMonth } = projections;
+    return { data, capex, breakEvenMonth, occupancyRate, requiredOccupancyRate };
+  }, [tier, vehicleCapacity, retailPrice, wholesaleCost, inflationRate, demandGrowth, chargesPerMonth]);
+
+  const { data, capex, breakEvenMonth, occupancyRate, requiredOccupancyRate } = projections;
   const year1MonthlyIncome = data[0].netMonthlyProfit;
   const avgRoi = data.reduce((acc, curr) => acc + curr.annualRoi, 0) / 10;
   const finalMultiplier = data[9].cashMultiplier;
@@ -146,6 +173,47 @@ export function ElectrolineraSimulator() {
                 <span className="text-xs font-bold text-[#FFFDF0]">{vehicleCapacity} kWh</span>
               </div>
               <input type="range" min="30" max="100" step="5" value={vehicleCapacity} onChange={(e) => setVehicleCapacity(Number(e.target.value))} className="w-full accent-[#D8DA00]" />
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <label className="text-xs font-semibold text-[#8CB4BC] uppercase flex items-center gap-2">
+                  Número de Cargas
+                  <button 
+                    onClick={() => setIsDaily(!isDaily)}
+                    className="px-2 py-0.5 rounded bg-[#0A3A43] border border-[#1A6B78]/50 text-[#FFFDF0] text-[10px] hover:border-[#D8DA00] transition-colors"
+                  >
+                    Ver {isDaily ? 'Mensual' : 'Diario'}
+                  </button>
+                </label>
+                <span className="text-xs font-bold text-[#FFFDF0]">
+                  {isDaily ? Math.round(chargesPerMonth / 30) : chargesPerMonth} cargas/{isDaily ? 'día' : 'mes'}
+                </span>
+              </div>
+              <input 
+                type="range" 
+                min={isDaily ? 1 : 30} 
+                max={isDaily ? 50 : 1500} 
+                step={isDaily ? 1 : 30} 
+                value={isDaily ? Math.round(chargesPerMonth / 30) : chargesPerMonth} 
+                onChange={(e) => setChargesPerMonth(isDaily ? Number(e.target.value) * 30 : Number(e.target.value))} 
+                className="w-full accent-[#D8DA00]" 
+              />
+              
+              <div className="mt-2 p-2 bg-[#0A3A43]/50 rounded-lg border border-[#1A6B78]/30 text-[11px] space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-[#8CB4BC]">Tasa de Ocupación:</span>
+                  <span className="font-bold text-[#FFFDF0]">{(occupancyRate * 100).toFixed(1)}%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#8CB4BC]">Ocupación de Equilibrio (10 Años):</span>
+                  <span className="font-bold text-[#D8DA00]">
+                    {requiredOccupancyRate !== null 
+                      ? `${(requiredOccupancyRate * 100).toFixed(1)}%` 
+                      : 'N/A'}
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div>
@@ -229,7 +297,7 @@ export function ElectrolineraSimulator() {
         simulationPayload={{
           assetType: 'ELECTROLINERA',
           selectedTier: tier,
-          customParameters: { vehicleCapacity, retailPrice, wholesaleCost, inflationRate, demandGrowth }
+          customParameters: { vehicleCapacity, chargesPerMonth, retailPrice, wholesaleCost, inflationRate, demandGrowth }
         }} 
       />
     </div>

@@ -109,15 +109,26 @@ const PorQueInvertir = () => {
               })}
             </div>
           </div>
-          <Link href="#contacto" className="mt-12 z-20">
-            <motion.button 
-              className="bg-good-dark-green text-good-lime px-8 py-3 font-bold uppercase tracking-wider rounded-full"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Quiero invertir
-            </motion.button>
-          </Link>
+          <div className="mt-12 z-20 flex flex-col sm:flex-row gap-4 items-center">
+            <Link href="/investment-simulator">
+              <motion.button 
+                className="bg-good-lime text-good-dark-green px-8 py-3 font-bold uppercase tracking-wider rounded-full shadow-lg"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Simular Inversión
+              </motion.button>
+            </Link>
+            <Link href="#contacto">
+              <motion.button 
+                className="bg-good-dark-green text-good-lime px-8 py-3 font-bold uppercase tracking-wider rounded-full"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Quiero invertir
+              </motion.button>
+            </Link>
+          </div>
         </div>
       </div>
     </section>

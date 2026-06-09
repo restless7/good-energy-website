@@ -3,6 +3,7 @@
 'use client';
 import React, { useRef } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import EllipseHighlight from './EllipseHighlight'; 
 
@@ -40,26 +41,45 @@ const Hero = () => {
       
       {/* ---- CAPA 2: EL TÍTULO ---- */}
       <div className="relative z-20 flex h-full items-start justify-center md:justify-end">
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-4xl text-good-dark-green md:text-6xl font-semibold leading-tight tracking-wide text-center md:text-right mt-40 md:mt-48 md:mr-[13%]"
-        >
-          <span className="font-normal">Energía solar,</span> <br /> 
-          energía para <br />
-          <span className="font-bold relative inline-block">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, rotate: 0 }}
-              animate={{ scale: 1, opacity: 1, rotate: -6 }}
-              transition={{ duration: 1, delay: 0.5, ease: 'easeOut' }}
-              className="absolute -inset-x-6 -inset-y-4"
+        <div className="flex flex-col items-center md:items-end mt-40 md:mt-48 md:mr-[13%]">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="text-4xl text-good-dark-green md:text-6xl font-semibold leading-tight tracking-wide text-center md:text-right"
+          >
+            <span className="font-normal">Energía solar,</span> <br /> 
+            energía para <br />
+            <span className="font-bold relative inline-block">
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, rotate: 0 }}
+                animate={{ scale: 1, opacity: 1, rotate: -6 }}
+                transition={{ duration: 1, delay: 0.5, ease: 'easeOut' }}
+                className="absolute -inset-x-6 -inset-y-4"
+              >
+                <EllipseHighlight className="w-full h-full text-good-white" />
+              </motion.div>
+              <span className="relative z-10">la vida</span>
+            </span>
+          </motion.h1>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 0.8 }}
+            className="mt-8 md:mt-10"
+          >
+            <Link 
+              href="/investment-simulator"
+              className="inline-flex items-center gap-2 bg-good-lime text-good-dark-green px-8 py-4 rounded-full font-bold text-lg md:text-xl transition-transform hover:scale-105 shadow-xl hover:shadow-2xl"
             >
-              <EllipseHighlight className="w-full h-full text-good-white" />
-            </motion.div>
-            <span className="relative z-10">la vida</span>
-          </span>
-        </motion.h1>
+              Simula tu Inversión
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+          </motion.div>
+        </div>
       </div>
 
       {/* ---- CAPA 3: IMAGEN DEL TRABAJADOR (CHICO 1) ---- */}

@@ -18,7 +18,6 @@ const navLinks = [
       { href: '/inversiones', label: 'DASHBOARD' },
       { href: '/blog', label: 'BLOG & NOTICIAS' },
       { href: '/join-conference', label: 'EVENTOS' },
-      { href: '/investment-simulator', label: 'RECURSOS' },
     ]
   },
   { href: '#contacto', label: 'CONTACTO' },
@@ -108,6 +107,19 @@ const Navbar = () => {
           ))}
         </ul>
 
+        <div className="hidden md:flex items-center">
+          <Link 
+            href="/investment-simulator"
+            className={`px-6 py-2 rounded-full font-bold transition-all duration-300 transform hover:scale-105 shadow-lg ${
+              hasScrolled 
+                ? 'bg-good-lime text-good-dark-green hover:bg-good-dark-green hover:text-good-lime' 
+                : 'bg-good-white text-good-dark-green hover:bg-good-lime'
+            }`}
+          >
+            SIMULAR INVERSIÓN
+          </Link>
+        </div>
+
         <div className="md:hidden">
           <button onClick={() => setIsOpen(!isOpen)}>
             <Menu
@@ -156,6 +168,15 @@ const Navbar = () => {
               )}
             </li>
           ))}
+          <li className="text-center mt-6">
+            <Link
+              href="/investment-simulator"
+              onClick={() => setIsOpen(false)}
+              className="inline-block bg-good-white text-good-dark-green px-8 py-4 rounded-full text-2xl font-bold hover:bg-good-lime transition-colors"
+            >
+              SIMULAR INVERSIÓN
+            </Link>
+          </li>
         </ul>
       </div>
     </header>
