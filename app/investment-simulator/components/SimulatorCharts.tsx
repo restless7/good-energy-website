@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState } from 'react';
-import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
+import { AreaChart, Area, ComposedChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
 
 interface SimulatorChartsProps {
   data: any[];
 }
 
 export function SimulatorCharts({ data }: SimulatorChartsProps) {
-  const [activeChart, setActiveChart] = useState<'REVENUE' | 'MULTIPLIER'>('REVENUE');
+  const [activeChart, setActiveChart] = useState<'REVENUE' | 'BREAKEVEN'>('REVENUE');
 
   const formatCurrency = (value: number) => {
     if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
@@ -28,10 +28,10 @@ export function SimulatorCharts({ data }: SimulatorChartsProps) {
             Revenues & Profit
           </button>
           <button 
-            onClick={() => setActiveChart('MULTIPLIER')}
-            className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${activeChart === 'MULTIPLIER' ? 'bg-[#1A6B78] text-[#FFFDF0]' : 'text-[#8CB4BC] hover:text-[#FFFDF0]'}`}
+            onClick={() => setActiveChart('BREAKEVEN')}
+            className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${activeChart === 'BREAKEVEN' ? 'bg-[#1A6B78] text-[#FFFDF0]' : 'text-[#8CB4BC] hover:text-[#FFFDF0]'}`}
           >
-            Cash Multiplier
+            Punto de Equilibrio
           </button>
         </div>
       </div>
@@ -63,17 +63,25 @@ export function SimulatorCharts({ data }: SimulatorChartsProps) {
               <Area type="monotone" dataKey="netProfit" name="Net Profit" stroke="#D8DA00" strokeWidth={3} fillOpacity={1} fill="url(#colorNet)" />
             </AreaChart>
           ) : (
-            <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+            <ComposedChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorCumProfit" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#D8DA00" stopOpacity={0.6}/>
+                  <stop offset="95%" stopColor="#D8DA00" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#1A6B78" vertical={false} />
               <XAxis dataKey="year" stroke="#8CB4BC" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis domain={['auto', 'auto']} stroke="#8CB4BC" fontSize={12} tickFormatter={(val) => `${val}x`} tickLine={false} axisLine={false} />
+              <YAxis domain={['auto', 'auto']} stroke="#8CB4BC" fontSize={12} tickFormatter={formatCurrency} tickLine={false} axisLine={false} />
               <Tooltip 
                 contentStyle={{ backgroundColor: '#052126', borderColor: '#1A6B78', color: '#FFFDF0', borderRadius: '8px' }}
-                formatter={(value: number) => [`${value.toFixed(2)}x`, 'Multiplier']}
+                itemStyle={{ color: '#FFFDF0' }}
+                formatter={(value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(value)}
               />
-              <ReferenceLine y={1} stroke="#E26A5A" strokeDasharray="3 3" label={{ position: 'top', value: 'Breakeven (1.0x)', fill: '#E26A5A', fontSize: 11 }} />
-              <Line type="monotone" dataKey="cashMultiplier" name="Cash Multiplier Curve" stroke="#D8DA00" strokeWidth={4} dot={{ r: 4, fill: '#052126', stroke: '#D8DA00', strokeWidth: 2 }} activeDot={{ r: 6 }} />
-            </LineChart>
+              <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px', color: '#8CB4BC' }} />
+              <Line type="monotone" dataKey="capexValue" name="Inversión Inicial (CAPEX)" stroke="#E26A5A" strokeWidth={3} strokeDasharray="5 5" dot={false} activeDot={false} />
+              <Area type="monotone" dataKey="cumulativeProfit" name="Utilidad Acumulada" stroke="#D8DA00" strokeWidth={3} fillOpacity={1} fill="url(#colorCumProfit)" />
+            </ComposedChart>
           )}
         </ResponsiveContainer>
       </div>

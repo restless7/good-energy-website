@@ -84,6 +84,8 @@ export function ElectrolineraSimulator() {
         year: `Año ${year}`,
         grossRevenues: Math.round(monthlyGrossRev * 12),
         netProfit: Math.round(netAnnualProfit),
+        cumulativeProfit: Math.round(cumulativeProfits),
+        capexValue: capex,
         cashMultiplier: Math.round(cashMultiplier * 100) / 100,
         monthlyKwhSold: Math.round(monthlyKwhSold),
         monthlyGrossRev: Math.round(monthlyGrossRev),
