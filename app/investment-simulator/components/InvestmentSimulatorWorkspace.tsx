@@ -21,7 +21,7 @@ export function InvestmentSimulatorWorkspace() {
           }`}
         >
           <Zap className="w-5 h-5" />
-          PILLAR 1: Electrolineras Premium
+          PILAR 1: Electrolineras Premium
         </button>
         <button
           onClick={() => setActiveTab('SOLAR_FARM')}
@@ -32,7 +32,7 @@ export function InvestmentSimulatorWorkspace() {
           }`}
         >
           <Sun className="w-5 h-5" />
-          PILLAR 2: Fractional Solar Farms
+          PILAR 2: Granjas Solares Fraccionadas
         </button>
       </div>
 

@@ -66,27 +66,27 @@ export function SolarFarmSimulator() {
       {/* High-Impact Performance Board */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-[#0E4D58] p-5 rounded-xl border border-[#1A6B78]/50 relative overflow-hidden">
-          <p className="text-xs text-[#8CB4BC] uppercase tracking-wider font-semibold mb-1">Total Project CAPEX</p>
+          <p className="text-xs text-[#8CB4BC] uppercase tracking-wider font-semibold mb-1">CAPEX Total del Proyecto</p>
           <p className="text-2xl font-bold text-[#FFFDF0]">{formatCurrency(totalCost)}</p>
-          <p className="text-xs text-[#8CB4BC] mt-1">{units} Unit{units > 1 ? 's' : ''} Fraction</p>
+          <p className="text-xs text-[#8CB4BC] mt-1">{units} Unidad{units > 1 ? 'es' : ''} Fraccionada{units > 1 ? 's' : ''}</p>
         </div>
 
         <div className="bg-[#0A3A43] p-5 rounded-xl border border-[#D8DA00]/30 relative overflow-hidden border-l-4 border-l-[#D8DA00]">
-          <p className="text-xs text-[#D8DA00] uppercase tracking-wider font-bold mb-1">Yr 1 Estimated Monthly</p>
+          <p className="text-xs text-[#D8DA00] uppercase tracking-wider font-bold mb-1">Ingreso Mensual Estimado (Año 1)</p>
           <p className="text-2xl font-bold text-[#FFFDF0]">{formatCurrency(year1MonthlyIncome)}</p>
-          <p className="text-xs text-[#8CB4BC] mt-1">Net Retained Profit</p>
+          <p className="text-xs text-[#8CB4BC] mt-1">Utilidad Neta Retenida</p>
         </div>
 
         <div className="bg-[#0E4D58] p-5 rounded-xl border border-[#1A6B78]/50">
-          <p className="text-xs text-[#8CB4BC] uppercase tracking-wider font-semibold mb-1">Average 10Y ROI</p>
+          <p className="text-xs text-[#8CB4BC] uppercase tracking-wider font-semibold mb-1">ROI Promedio (10 Años)</p>
           <p className="text-2xl font-bold text-[#FFFDF0]">{avgRoi.toFixed(1)}%</p>
-          <p className="text-xs text-[#8CB4BC] mt-1">Cash Multiplier: {finalMultiplier.toFixed(2)}x</p>
+          <p className="text-xs text-[#8CB4BC] mt-1">Multiplicador de Capital: {finalMultiplier.toFixed(2)}x</p>
         </div>
 
         <div className="bg-[#0E4D58] p-5 rounded-xl border border-[#1A6B78]/50">
-          <p className="text-xs text-[#8CB4BC] uppercase tracking-wider font-semibold mb-1">Break-even Horizon</p>
+          <p className="text-xs text-[#8CB4BC] uppercase tracking-wider font-semibold mb-1">Horizonte de Retorno (Breakeven)</p>
           <p className="text-2xl font-bold text-[#FFFDF0]">{breakEvenMonth !== -1 ? `${breakEvenMonth} Meses` : '> 120 Meses'}</p>
-          <p className="text-xs text-[#8CB4BC] mt-1">Initial CAPEX recovered</p>
+          <p className="text-xs text-[#8CB4BC] mt-1">Recuperación del CAPEX inicial</p>
         </div>
       </div>
 
@@ -96,29 +96,29 @@ export function SolarFarmSimulator() {
           
           <div>
             <div className="flex justify-between mb-1">
-              <label className="text-xs font-semibold text-[#8CB4BC] uppercase">Units to Acquire</label>
-              <span className="text-xs font-bold text-[#FFFDF0]">{units} Units</span>
+              <label className="text-xs font-semibold text-[#8CB4BC] uppercase">Unidades a Adquirir</label>
+              <span className="text-xs font-bold text-[#FFFDF0]">{units} Unidades</span>
             </div>
             <input type="range" min="1" max="50" step="1" value={units} onChange={(e) => setUnits(Number(e.target.value))} className="w-full accent-[#D8DA00]" />
           </div>
 
           <div>
             <div className="flex justify-between mb-1">
-              <label className="text-xs font-semibold text-[#8CB4BC] uppercase">Annual Inflation Factor</label>
+              <label className="text-xs font-semibold text-[#8CB4BC] uppercase">Factor de Inflación Anual</label>
               <span className="text-xs font-bold text-[#FFFDF0]">{inflationRate}%</span>
             </div>
             <input type="range" min="0" max="15" step="1" value={inflationRate} onChange={(e) => setInflationRate(Number(e.target.value))} className="w-full accent-[#D8DA00]" />
           </div>
 
           <div className="pt-4 border-t border-[#1A6B78]/30 space-y-3">
-            <h4 className="text-sm font-bold text-[#FFFDF0] uppercase">Financing Terms</h4>
+            <h4 className="text-sm font-bold text-[#FFFDF0] uppercase">Términos de Financiación</h4>
             <div className="bg-[#0A3A43] p-4 rounded-xl border border-[#1A6B78]/30 space-y-2">
               <div className="flex justify-between text-xs">
-                <span className="text-[#8CB4BC]">Initial Downpayment</span>
+                <span className="text-[#8CB4BC]">Cuota Inicial</span>
                 <span className="font-bold text-[#FFFDF0]">{formatCurrency(totalDownpayment)}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-[#8CB4BC]">Monthly (x12 Months)</span>
+                <span className="text-[#8CB4BC]">Mensualidad (x12 Meses)</span>
                 <span className="font-bold text-[#D8DA00]">{formatCurrency(totalMonthlyFinancing)}</span>
               </div>
             </div>
@@ -137,16 +137,16 @@ export function SolarFarmSimulator() {
           
           <div className="bg-[#0E4D58] rounded-xl border border-[#1A6B78]/50 overflow-hidden font-mono">
             <div className="bg-[#0A3A43]/60 px-4 py-3 border-b border-[#1A6B78]/30">
-              <h3 className="text-sm font-bold text-[#FFFDF0] uppercase">10-Year Financial Ledger</h3>
+              <h3 className="text-sm font-bold text-[#FFFDF0] uppercase">Proyección Financiera a 10 Años</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
                 <thead className="bg-[#0A3A43]/30 border-b border-[#1A6B78]/30 text-[#8CB4BC] uppercase">
                   <tr>
-                    <th className="px-4 py-3 font-semibold">Year</th>
-                    <th className="px-4 py-3 font-semibold text-right">Net Annual Yield</th>
-                    <th className="px-4 py-3 font-semibold text-right">Cumulative</th>
-                    <th className="px-4 py-3 font-semibold text-right">Annual ROI</th>
+                    <th className="px-4 py-3 font-semibold">Año</th>
+                    <th className="px-4 py-3 font-semibold text-right">Rendimiento Anual Neto</th>
+                    <th className="px-4 py-3 font-semibold text-right">Acumulado</th>
+                    <th className="px-4 py-3 font-semibold text-right">ROI Anual</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1A6B78]/20 text-[#FFFDF0]">

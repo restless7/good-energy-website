@@ -5,9 +5,9 @@ import { SimulatorCharts } from './SimulatorCharts';
 import { SimulationLeadForm } from './SimulationLeadForm';
 
 const TIERS = {
-  TIER_01: { name: 'Tier 01 (60kW Fast)', capex: 120000000, baseDemand: 90 },
-  TIER_02: { name: 'Tier 02 (120kW Super Fast)', capex: 180000000, baseDemand: 240 },
-  TIER_03: { name: 'Tier 03 (240kW Ultra Fast)', capex: 250000000, baseDemand: 450 },
+  TIER_01: { name: 'Tier 01 (60kW Rápida)', capex: 120000000, baseDemand: 90 },
+  TIER_02: { name: 'Tier 02 (120kW Súper Rápida)', capex: 180000000, baseDemand: 240 },
+  TIER_03: { name: 'Tier 03 (240kW Ultra Rápida)', capex: 250000000, baseDemand: 450 },
 };
 
 export function ElectrolineraSimulator() {
@@ -91,27 +91,27 @@ export function ElectrolineraSimulator() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <p className="text-xs text-[#8CB4BC] uppercase tracking-wider font-semibold mb-1">Total Initial Investment</p>
+          <p className="text-xs text-[#8CB4BC] uppercase tracking-wider font-semibold mb-1">Inversión Inicial Total</p>
           <p className="text-2xl font-bold text-[#FFFDF0]">{formatCurrency(capex)}</p>
-          <p className="text-xs text-[#8CB4BC] mt-1">CAPEX for {TIERS[tier].name}</p>
+          <p className="text-xs text-[#8CB4BC] mt-1">CAPEX para {TIERS[tier].name}</p>
         </div>
 
         <div className="bg-[#0A3A43] p-5 rounded-xl border border-[#D8DA00]/30 relative overflow-hidden border-l-4 border-l-[#D8DA00]">
-          <p className="text-xs text-[#D8DA00] uppercase tracking-wider font-bold mb-1">Yr 1 Estimated Monthly</p>
+          <p className="text-xs text-[#D8DA00] uppercase tracking-wider font-bold mb-1">Ingreso Mensual Estimado (Año 1)</p>
           <p className="text-2xl font-bold text-[#FFFDF0]">{formatCurrency(year1MonthlyIncome)}</p>
-          <p className="text-xs text-[#8CB4BC] mt-1">Net Retained Profit</p>
+          <p className="text-xs text-[#8CB4BC] mt-1">Utilidad Neta Retenida</p>
         </div>
 
         <div className="bg-[#0E4D58] p-5 rounded-xl border border-[#1A6B78]/50">
-          <p className="text-xs text-[#8CB4BC] uppercase tracking-wider font-semibold mb-1">Average 10Y ROI</p>
+          <p className="text-xs text-[#8CB4BC] uppercase tracking-wider font-semibold mb-1">ROI Promedio (10 Años)</p>
           <p className="text-2xl font-bold text-[#FFFDF0]">{avgRoi.toFixed(1)}%</p>
-          <p className="text-xs text-[#8CB4BC] mt-1">Cash Multiplier: {finalMultiplier.toFixed(2)}x</p>
+          <p className="text-xs text-[#8CB4BC] mt-1">Multiplicador de Capital: {finalMultiplier.toFixed(2)}x</p>
         </div>
 
         <div className="bg-[#0E4D58] p-5 rounded-xl border border-[#1A6B78]/50">
-          <p className="text-xs text-[#8CB4BC] uppercase tracking-wider font-semibold mb-1">Break-even Horizon</p>
+          <p className="text-xs text-[#8CB4BC] uppercase tracking-wider font-semibold mb-1">Horizonte de Retorno (Breakeven)</p>
           <p className="text-2xl font-bold text-[#FFFDF0]">{breakEvenMonth !== -1 ? `${breakEvenMonth} Meses` : '> 120 Meses'}</p>
-          <p className="text-xs text-[#8CB4BC] mt-1">Initial CAPEX recovered</p>
+          <p className="text-xs text-[#8CB4BC] mt-1">Recuperación del CAPEX inicial</p>
         </div>
       </div>
 
@@ -120,7 +120,7 @@ export function ElectrolineraSimulator() {
         <div className="lg:col-span-1 space-y-6 bg-[#0E4D58]/50 p-6 rounded-2xl border border-[#1A6B78]/30">
           
           <div>
-            <label className="text-sm font-semibold text-[#FFFDF0] uppercase tracking-wider">Operational Tier</label>
+            <label className="text-sm font-semibold text-[#FFFDF0] uppercase tracking-wider">Nivel Operativo (Tier)</label>
             <div className="mt-3 space-y-2">
               {(Object.keys(TIERS) as Array<keyof typeof TIERS>).map((t) => (
                 <button
@@ -142,7 +142,7 @@ export function ElectrolineraSimulator() {
           <div className="space-y-5 pt-4 border-t border-[#1A6B78]/30">
             <div>
               <div className="flex justify-between mb-1">
-                <label className="text-xs font-semibold text-[#8CB4BC] uppercase">Vehicle Charge Capacity</label>
+                <label className="text-xs font-semibold text-[#8CB4BC] uppercase">Capacidad de Carga del Vehículo</label>
                 <span className="text-xs font-bold text-[#FFFDF0]">{vehicleCapacity} kWh</span>
               </div>
               <input type="range" min="30" max="100" step="5" value={vehicleCapacity} onChange={(e) => setVehicleCapacity(Number(e.target.value))} className="w-full accent-[#D8DA00]" />
@@ -150,7 +150,7 @@ export function ElectrolineraSimulator() {
 
             <div>
               <div className="flex justify-between mb-1">
-                <label className="text-xs font-semibold text-[#8CB4BC] uppercase">Retail Price (COP/kWh)</label>
+                <label className="text-xs font-semibold text-[#8CB4BC] uppercase">Precio de Venta (COP/kWh)</label>
                 <span className="text-xs font-bold text-[#FFFDF0]">{formatCurrency(retailPrice)}</span>
               </div>
               <input type="range" min="1500" max="3000" step="50" value={retailPrice} onChange={(e) => setRetailPrice(Number(e.target.value))} className="w-full accent-[#D8DA00]" />
@@ -158,7 +158,7 @@ export function ElectrolineraSimulator() {
 
             <div>
               <div className="flex justify-between mb-1">
-                <label className="text-xs font-semibold text-[#8CB4BC] uppercase">Wholesale Input Cost</label>
+                <label className="text-xs font-semibold text-[#8CB4BC] uppercase">Costo Mayorista de Energía</label>
                 <span className="text-xs font-bold text-[#FFFDF0]">{formatCurrency(wholesaleCost)}</span>
               </div>
               <input type="range" min="500" max="1500" step="50" value={wholesaleCost} onChange={(e) => setWholesaleCost(Number(e.target.value))} className="w-full accent-[#D8DA00]" />
@@ -166,7 +166,7 @@ export function ElectrolineraSimulator() {
 
             <div>
               <div className="flex justify-between mb-1">
-                <label className="text-xs font-semibold text-[#8CB4BC] uppercase">Annual Inflation Rate</label>
+                <label className="text-xs font-semibold text-[#8CB4BC] uppercase">Tasa de Inflación Anual</label>
                 <span className="text-xs font-bold text-[#FFFDF0]">{inflationRate}%</span>
               </div>
               <input type="range" min="0" max="15" step="1" value={inflationRate} onChange={(e) => setInflationRate(Number(e.target.value))} className="w-full accent-[#D8DA00]" />
@@ -174,7 +174,7 @@ export function ElectrolineraSimulator() {
 
             <div>
               <div className="flex justify-between mb-1">
-                <label className="text-xs font-semibold text-[#8CB4BC] uppercase">Annual Demand Growth</label>
+                <label className="text-xs font-semibold text-[#8CB4BC] uppercase">Crecimiento Anual de Demanda</label>
                 <span className="text-xs font-bold text-[#FFFDF0]">{demandGrowth}%</span>
               </div>
               <input type="range" min="0" max="30" step="1" value={demandGrowth} onChange={(e) => setDemandGrowth(Number(e.target.value))} className="w-full accent-[#D8DA00]" />
@@ -194,17 +194,17 @@ export function ElectrolineraSimulator() {
           
           <div className="bg-[#0E4D58] rounded-xl border border-[#1A6B78]/50 overflow-hidden font-mono">
             <div className="bg-[#0A3A43]/60 px-4 py-3 border-b border-[#1A6B78]/30">
-              <h3 className="text-sm font-bold text-[#FFFDF0] uppercase">10-Year Financial Ledger</h3>
+              <h3 className="text-sm font-bold text-[#FFFDF0] uppercase">Proyección Financiera a 10 Años</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
                 <thead className="bg-[#0A3A43]/30 border-b border-[#1A6B78]/30 text-[#8CB4BC] uppercase">
                   <tr>
-                    <th className="px-4 py-3 font-semibold">Year</th>
-                    <th className="px-4 py-3 font-semibold text-right">kWh Dispensed</th>
-                    <th className="px-4 py-3 font-semibold text-right">Gross Rev</th>
-                    <th className="px-4 py-3 font-semibold text-right">Net Profit</th>
-                    <th className="px-4 py-3 font-semibold text-right">Annual ROI</th>
+                    <th className="px-4 py-3 font-semibold">Año</th>
+                    <th className="px-4 py-3 font-semibold text-right">kWh Dispensados</th>
+                    <th className="px-4 py-3 font-semibold text-right">Ingreso Bruto</th>
+                    <th className="px-4 py-3 font-semibold text-right">Utilidad Neta</th>
+                    <th className="px-4 py-3 font-semibold text-right">ROI Anual</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1A6B78]/20 text-[#FFFDF0]">
