@@ -69,6 +69,7 @@ const navigation = [
     roles: ['SUPER_ADMIN', 'PARTNER'],
     subItems: [
       { name: 'Plantas Solares', href: '/admin/plantas' },
+      { name: 'Electrolineras', href: '/admin/electrolineras' },
       { name: 'Producción Energía', href: '/admin/produccion' },
     ]
   },

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Users, Search, Plus, Filter, MoreVertical, Mail, Phone, MapPin, Zap, Sun, BarChart } from 'lucide-react';
 import { useRBAC } from '@/hooks/useRBAC';
+import { toast } from 'sonner';
 
 // Mock data matching the new schema requirements
 const mockInvestors = [
@@ -59,7 +60,10 @@ export default function InversionistasPage() {
           <h1 className="text-2xl font-bold text-[#FFFDF0]">Syndicate Investors</h1>
           <p className="text-[#8CB4BC] text-sm mt-1">Foundational Angel Rounds & Asset Deployments</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 bg-[#D8DA00] hover:bg-[#D8DA00]/90 text-[#0D4651] font-semibold rounded-xl transition-colors text-sm">
+        <button 
+          onClick={() => toast.info('El flujo de onboarding institucional está en desarrollo para la próxima versión.')}
+          className="flex items-center gap-2 px-4 py-2.5 bg-[#D8DA00] hover:bg-[#D8DA00]/90 text-[#0D4651] font-semibold rounded-xl transition-colors text-sm"
+        >
           <Plus className="w-4 h-4" />
           Onboard Investor
         </button>
