@@ -4,6 +4,33 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { SimulatorCharts } from './SimulatorCharts';
 import { SimulationLeadForm } from './SimulationLeadForm';
 
+function calculateIRR(cashFlows: number[], guess = 0.1): number {
+  const maxIter = 100;
+  const precision = 1e-5;
+  let rate = guess;
+
+  for (let i = 0; i < maxIter; i++) {
+    let npv = 0;
+    let npvDerivative = 0;
+    
+    for (let t = 0; t < cashFlows.length; t++) {
+      npv += cashFlows[t] / Math.pow(1 + rate, t);
+      if (t > 0) {
+        npvDerivative -= t * cashFlows[t] / Math.pow(1 + rate, t + 1);
+      }
+    }
+    
+    if (npvDerivative === 0) return 0;
+    
+    const newRate = rate - npv / npvDerivative;
+    if (Math.abs(newRate - rate) < precision) {
+      return newRate;
+    }
+    rate = newRate;
+  }
+  return rate;
+}
+
 const TIERS = {
   TIER_01: { name: 'Tier 01 (60kW Rápida)', capex: 120000000, baseDemand: 90, power: 60 },
   TIER_02: { name: 'Tier 02 (120kW Súper Rápida)', capex: 180000000, baseDemand: 240, power: 120 },
@@ -101,10 +128,13 @@ export function ElectrolineraSimulator() {
       ? (requiredMonthlyChargesForBreakeven * hoursPerCharge) / hoursPerMonth 
       : null;
 
-    return { data, capex, breakEvenMonth, occupancyRate, requiredOccupancyRate };
+    const cashFlows = [-capex, ...data.map(d => d.netProfit)];
+    const irr = calculateIRR(cashFlows);
+
+    return { data, capex, breakEvenMonth, occupancyRate, requiredOccupancyRate, irr };
   }, [tier, vehicleCapacity, retailPrice, wholesaleCost, inflationRate, demandGrowth, chargesPerMonth]);
 
-  const { data, capex, breakEvenMonth, occupancyRate, requiredOccupancyRate } = projections;
+  const { data, capex, breakEvenMonth, occupancyRate, requiredOccupancyRate, irr } = projections;
   const year1MonthlyIncome = data[0].netMonthlyProfit;
   const avgRoi = data.reduce((acc, curr) => acc + curr.annualRoi, 0) / 10;
   const finalMultiplier = data[9].cashMultiplier;
@@ -131,10 +161,15 @@ export function ElectrolineraSimulator() {
           <p className="text-xs text-[#8CB4BC] mt-1">Utilidad Neta Retenida</p>
         </div>
 
-        <div className="bg-[#0E4D58] p-5 rounded-xl border border-[#1A6B78]/50">
-          <p className="text-xs text-[#8CB4BC] uppercase tracking-wider font-semibold mb-1">ROI Promedio (10 Años)</p>
-          <p className="text-2xl font-bold text-[#FFFDF0]">{avgRoi.toFixed(1)}%</p>
-          <p className="text-xs text-[#8CB4BC] mt-1">Multiplicador de Capital: {finalMultiplier.toFixed(2)}x</p>
+        <div className="bg-[#0E4D58] p-5 rounded-xl border border-[#1A6B78]/50 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <svg className="w-12 h-12 text-[#8CB4BC]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+          </div>
+          <p className="text-xs text-[#8CB4BC] uppercase tracking-wider font-semibold mb-1">TIR (Tasa Interna de Retorno)</p>
+          <p className="text-2xl font-bold text-[#FFFDF0]">{(irr * 100).toFixed(1)}%</p>
+          <p className="text-xs text-[#8CB4BC] mt-1">Rentabilidad Real del Proyecto</p>
         </div>
 
         <div className="bg-[#0E4D58] p-5 rounded-xl border border-[#1A6B78]/50">
@@ -300,6 +335,7 @@ export function ElectrolineraSimulator() {
                     <th className="px-4 py-3 font-semibold text-right">kWh Dispensados</th>
                     <th className="px-4 py-3 font-semibold text-right">Ingreso Bruto</th>
                     <th className="px-4 py-3 font-semibold text-right">Utilidad Neta</th>
+                    <th className="px-4 py-3 font-semibold text-right">Margen Neto</th>
                     <th className="px-4 py-3 font-semibold text-right">ROI Anual</th>
                   </tr>
                 </thead>
@@ -310,7 +346,8 @@ export function ElectrolineraSimulator() {
                       <td className="px-4 py-3 text-right">{(row.monthlyKwhSold * 12).toLocaleString(undefined, {maximumFractionDigits: 0})} kWh</td>
                       <td className="px-4 py-3 text-right">{formatCurrency(row.grossRevenues)}</td>
                       <td className="px-4 py-3 text-right text-[#D8DA00] font-bold">{formatCurrency(row.netProfit)}</td>
-                      <td className="px-4 py-3 text-right">{row.annualRoi.toFixed(1)}%</td>
+                      <td className="px-4 py-3 text-right text-[#8CB4BC]">{((row.netProfit / row.grossRevenues) * 100).toFixed(1)}%</td>
+                      <td className="px-4 py-3 text-right font-medium">{row.annualRoi.toFixed(1)}%</td>
                     </tr>
                   ))}
                 </tbody>
