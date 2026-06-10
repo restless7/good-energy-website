@@ -10,7 +10,7 @@ import Financiamiento from '@/components/Financiamiento';
 import Testimonio from '@/components/Testimonio';
 import Contacto from '@/components/Contacto';
 import BannerInversion from '@/components/BannerInversion';
-
+import PortafolioEcosistema from '@/components/PortafolioEcosistema';
 
 export default function HomePage() {
   return (
@@ -27,6 +27,7 @@ export default function HomePage() {
       
       {/* El resto de los componentes van fuera del marco */}
       <Somos />
+      <PortafolioEcosistema />
       <BannerInversion />
       <ComoFunciona />
       <ComoFuncionaDiagrama />

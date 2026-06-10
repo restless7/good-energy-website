@@ -48,7 +48,7 @@ const Hero = () => {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="text-4xl text-good-dark-green md:text-6xl font-semibold leading-tight tracking-wide text-center md:text-right"
           >
-            <span className="font-normal">Energía solar,</span> <br /> 
+            <span className="font-normal text-3xl md:text-5xl">Infraestructura Inteligente,</span> <br /> 
             energía para <br />
             <span className="font-bold relative inline-block">
               <motion.div
@@ -59,9 +59,18 @@ const Hero = () => {
               >
                 <EllipseHighlight className="w-full h-full text-good-white" />
               </motion.div>
-              <span className="relative z-10">la vida</span>
+              <span className="relative z-10">el futuro</span>
             </span>
           </motion.h1>
+          
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
+            className="mt-6 text-good-dark-green text-lg md:text-xl text-center md:text-right font-medium max-w-lg"
+          >
+            Invierte en Granjas Solares y la nueva red de <span className="font-bold">Electrolineras Premium</span> de Colombia.
+          </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
